@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "author": "Thanh Tien",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 163.2,
+      "left": 187.24,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -222.8,
+      "left": 389.6,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -121.37,
+      "left": -60.8,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay1",
+      "top": 96.2,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 15.6,
+      "left": -169,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 320.75,
+      "left": 384,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": 207.6,
+      "left": 426.2,
+      "attrs": { "color": "white" }
+    }
+  ],
+  "connections": [
+    ["esp:TX", "$serialMonitor:RX", "", []],
+    ["esp:RX", "$serialMonitor:TX", "", []],
+    ["led2:A", "r1:2", "green", ["v0"]],
+    ["r1:1", "esp:2", "green", ["v0"]],
+    ["esp:GND.2", "led2:C", "black", ["v0", "h67.2", "v86.4"]]
+  ],
+  "dependencies": {}
+}

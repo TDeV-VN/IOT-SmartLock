@@ -11,7 +11,7 @@
       "left": -464.8,
       "attrs": {}
     },
-    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -73.37, "left": -521.6, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": 377.83, "left": 131.2, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay1", "top": 173, "left": 86.4, "attrs": {} },
     { "type": "wokwi-led", "id": "led1", "top": 140.4, "left": -73, "attrs": { "color": "red" } }
   ],
@@ -25,7 +25,19 @@
     [ "esp:26", "keypad1:C1", "green", [ "h0" ] ],
     [ "esp:25", "keypad1:C2", "green", [ "v0", "h-307.05" ] ],
     [ "esp:33", "keypad1:C3", "green", [ "h0" ] ],
-    [ "esp:32", "keypad1:C4", "green", [ "h0" ] ]
+    [ "esp:32", "keypad1:C4", "green", [ "h0" ] ],
+    [ "esp:GND.2", "lcd1:VSS", "black", [ "v0", "h76.8" ] ],
+    [ "lcd1:V0", "esp:GND.2", "green", [ "v0" ] ],
+    [ "lcd1:RS", "esp:23", "green", [ "v0" ] ],
+    [ "lcd1:RW", "esp:GND.2", "green", [ "v0" ] ],
+    [ "lcd1:E", "esp:19", "green", [ "v0" ] ],
+    [ "lcd1:D4", "esp:18", "green", [ "v0" ] ],
+    [ "lcd1:D5", "esp:17", "green", [ "v0" ] ],
+    [ "lcd1:D6", "esp:16", "green", [ "v0" ] ],
+    [ "lcd1:D7", "esp:15", "green", [ "v0" ] ],
+    [ "lcd1:A", "esp:5V", "green", [ "v0" ] ],
+    [ "lcd1:VDD", "esp:5V", "green", [ "v0" ] ],
+    [ "lcd1:K", "esp:GND.2", "green", [ "v0" ] ]
   ],
   "dependencies": {}
 }

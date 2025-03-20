@@ -1,20 +1,29 @@
-#include <Arduino.h>
+#include <Keypad.h>
 
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 2  // Thường là chân 2, nhưng có thể khác tùy vào board
-#endif
+const byte ROWS = 4; // Số hàng
+const byte COLS = 4; // Số cột
+
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+
+byte rowPins[ROWS] = {13, 12, 14, 27}; // Chân hàng nối ESP32
+byte colPins[COLS] = {26, 25, 33, 32}; // Chân cột nối ESP32
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
-  // Khởi tạo chân LED_BUILTIN là OUTPUT
-  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  Serial.println("Nhap phim tu ban phim ma tran:");
 }
 
 void loop() {
-  // Bật đèn LED
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(500);  // Giữ sáng 500ms
-
-  // Tắt đèn LED
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(500);  // Giữ tắt 500ms
+  char key = keypad.getKey();
+  if (key) {
+    Serial.print("Phim nhan: ");
+    Serial.println(key);
+  }
 }

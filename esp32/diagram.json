@@ -3,62 +3,29 @@
   "author": "Thanh Tien",
   "editor": "wokwi",
   "parts": [
-    {
-      "type": "board-esp32-devkit-c-v4",
-      "id": "esp",
-      "top": 163.2,
-      "left": 187.24,
-      "attrs": {}
-    },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 499.2, "left": -14.36, "attrs": {} },
     {
       "type": "wokwi-membrane-keypad",
       "id": "keypad1",
-      "top": -222.8,
-      "left": 389.6,
+      "top": 151.6,
+      "left": -464.8,
       "attrs": {}
     },
-    {
-      "type": "wokwi-lcd1602",
-      "id": "lcd1",
-      "top": -121.37,
-      "left": -60.8,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-relay-module",
-      "id": "relay1",
-      "top": 96.2,
-      "left": 0,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-led",
-      "id": "led1",
-      "top": 15.6,
-      "left": -169,
-      "attrs": { "color": "red" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r1",
-      "top": 320.75,
-      "left": 384,
-      "attrs": { "value": "1000" }
-    },
-    {
-      "type": "wokwi-led",
-      "id": "led2",
-      "top": 207.6,
-      "left": 426.2,
-      "attrs": { "color": "white" }
-    }
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -73.37, "left": -521.6, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay1", "top": 173, "left": 86.4, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 140.4, "left": -73, "attrs": { "color": "red" } }
   ],
   "connections": [
-    ["esp:TX", "$serialMonitor:RX", "", []],
-    ["esp:RX", "$serialMonitor:TX", "", []],
-    ["led2:A", "r1:2", "green", ["v0"]],
-    ["r1:1", "esp:2", "green", ["v0"]],
-    ["esp:GND.2", "led2:C", "black", ["v0", "h67.2", "v86.4"]]
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "keypad1:R1", "esp:13", "green", [ "v172.8", "h9.6" ] ],
+    [ "esp:12", "keypad1:R2", "green", [ "v0", "h-345.45" ] ],
+    [ "esp:14", "keypad1:R3", "green", [ "h0" ] ],
+    [ "esp:27", "keypad1:R4", "green", [ "h0" ] ],
+    [ "esp:26", "keypad1:C1", "green", [ "h0" ] ],
+    [ "esp:25", "keypad1:C2", "green", [ "v0", "h-307.05" ] ],
+    [ "esp:33", "keypad1:C3", "green", [ "h0" ] ],
+    [ "esp:32", "keypad1:C4", "green", [ "h0" ] ]
   ],
   "dependencies": {}
 }

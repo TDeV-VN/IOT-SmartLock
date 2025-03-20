@@ -27,6 +27,9 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 
+// Khai báo relay (đóng/ngắt khóa điện từ)
+#define RELAY_PIN 4  // Chân nối relay trên ESP32
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Nhap phim tu ban phim ma tran:");
@@ -35,6 +38,10 @@ void setup() {
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
   lcd.print("ESP32 Keypad Test");
+
+  // Cấu hình relay
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, HIGH); // Ban đầu tắt relay (nếu relay dùng LOW level trigger)
 }
 
 void loop() {
@@ -44,16 +51,42 @@ void loop() {
     Serial.print("Phim nhan: ");
     Serial.println(key);
     
+    lcd.setCursor(0, 1);
+    lcd.print("Phim: ");
+    lcd.print(key);
+    lcd.print("    "); // Xóa kí tự cũ
+
+    if (key == 'A') {
+      // Mở khóa
+      Serial.println("Mo khoa trong 5s...");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Mo khoa...");
+      
+      digitalWrite(RELAY_PIN, LOW); // Bật relay (nếu là relay LOW-level trigger)
+      delay(5000); // Giữ relay bật trong 5 giây
+      digitalWrite(RELAY_PIN, HIGH); // Tắt relay
+      Serial.println("Khoa dong!");
+      
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Khoa dong!");
+    }
+
+    if (key == 'B') {
+      // Đóng khóa ngay lập tức
+      Serial.println("Khoa dong ngay lap tuc!");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Khoa dong!");
+      digitalWrite(RELAY_PIN, HIGH); // Tắt relay ngay lập tức
+    }
+
     if (key == '#') {
       // Xóa màn hình khi nhấn "#"
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("ESP32 Keypad Test");
-    } else {
-      // Hiển thị phím nhấn lên dòng thứ hai của LCD
-      lcd.setCursor(0, 1);
-      lcd.print("Phim: ");
-      lcd.print(key);
     }
   }
 }

@@ -9,3 +9,6 @@
 - Để thay đổi sơ đồ linh kiện: chỉnh sửa sơ đồ trên Wokwi.com sau đó copy nội dung của file diagram.json. Trong VSCode, click phải vào file diagram.json -> Open with... -> Text editor -> dán nội dung đã copy vào.
 --------------------------------------------------------------
 - Để giao tiếp với trình mô phỏng qua wifi với máy ảo android studio: thay "localhost" bằng "10.0.2.2". Ví dụ: http://localhost:8180 -> http://10.0.2.2:8180
+
+--------------------------------------------------------------
+- Khi ấn vào nút A thì relay sẽ tắt -> đèn tắt, sau 5s relay mở -> đèn mở

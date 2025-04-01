@@ -24,7 +24,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 #define D5  17
 #define D6  16
 #define D7  15
-
+#define BUZZER_PIN 2
 LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 
 // Khai báo relay (đóng/ngắt khóa điện từ)
@@ -42,6 +42,9 @@ void setup() {
   // Cấu hình relay
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, HIGH); // Ban đầu tắt relay (nếu relay dùng LOW level trigger)
+  
+  // Cấu hình buzzer
+  pinMode(BUZZER_PIN, OUTPUT);
 }
 
 void loop() {
@@ -55,6 +58,11 @@ void loop() {
     lcd.print("Phim: ");
     lcd.print(key);
     lcd.print("    "); // Xóa kí tự cũ
+
+    // Bật buzzer khi nhấn phím bất kỳ
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(200);
+    digitalWrite(BUZZER_PIN, LOW);
 
     if (key == 'A') {
       // Mở khóa

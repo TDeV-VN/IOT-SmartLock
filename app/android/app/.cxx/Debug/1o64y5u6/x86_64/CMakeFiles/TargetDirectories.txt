@@ -1,0 +1,2 @@
+E:/HK2-2025/clone IOT bottom/IOT-SmartLock/app/android/app/.cxx/Debug/1o64y5u6/x86_64/CMakeFiles/edit_cache.dir
+E:/HK2-2025/clone IOT bottom/IOT-SmartLock/app/android/app/.cxx/Debug/1o64y5u6/x86_64/CMakeFiles/rebuild_cache.dir

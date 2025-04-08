@@ -1,34 +1,12 @@
 #include <Keypad.h>
 #include <LiquidCrystal.h>
+#include <gpo_config.h>
 
-// Khai báo bàn phím ma trận 4x4
-const byte ROWS = 4;
-const byte COLS = 4;
-
-char keys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
-
-byte rowPins[ROWS] = {13, 12, 14, 27};
-byte colPins[COLS] = {26, 25, 33, 32};
-
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+// Khai báo bàn phím ma trận
+Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
 // Khai báo LCD 16x2
-#define RS  23
-#define E   19
-#define D4  18
-#define D5  17
-#define D6  16
-#define D7  15
-#define BUZZER_PIN 2
-LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
-
-// Khai báo relay (đóng/ngắt khóa điện từ)
-#define RELAY_PIN 4  // Chân nối relay trên ESP32
+LiquidCrystal lcd(GPO_CONFIG::RS, GPO_CONFIG::E, GPO_CONFIG::D4, GPO_CONFIG::D5, GPO_CONFIG::D6, GPO_CONFIG::D7);
 
 void setup() {
   Serial.begin(115200);
@@ -40,11 +18,11 @@ void setup() {
   lcd.print("ESP32 Keypad Test");
 
   // Cấu hình relay
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, HIGH); // Ban đầu tắt relay (nếu relay dùng LOW level trigger)
+  pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
+  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Ban đầu tắt relay (nếu relay dùng LOW level trigger)
   
   // Cấu hình buzzer
-  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 }
 
 void loop() {
@@ -60,9 +38,9 @@ void loop() {
     lcd.print("    "); // Xóa kí tự cũ
 
     // Bật buzzer khi nhấn phím bất kỳ
-    digitalWrite(BUZZER_PIN, HIGH);
+    digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
     delay(200);
-    digitalWrite(BUZZER_PIN, LOW);
+    digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
 
     if (key == 'A') {
       // Mở khóa
@@ -71,9 +49,9 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Mo khoa...");
       
-      digitalWrite(RELAY_PIN, LOW); // Bật relay (nếu là relay LOW-level trigger)
+      digitalWrite(GPO_CONFIG::RELAY_PIN, LOW); // Bật relay (nếu là relay LOW-level trigger)
       delay(5000); // Giữ relay bật trong 5 giây
-      digitalWrite(RELAY_PIN, HIGH); // Tắt relay
+      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Tắt relay
       Serial.println("Khoa dong!");
       
       lcd.clear();
@@ -87,7 +65,7 @@ void loop() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Khoa dong!");
-      digitalWrite(RELAY_PIN, HIGH); // Tắt relay ngay lập tức
+      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Tắt relay ngay lập tức
     }
 
     if (key == '#') {

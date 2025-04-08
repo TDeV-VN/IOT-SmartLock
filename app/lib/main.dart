@@ -4,7 +4,7 @@ import 'screens/warning_history.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
-
+import 'screens/loginScreen.dart';
 import 'screens/signupScreen.dart';
 
 
@@ -30,6 +30,8 @@ class MyApp extends StatelessWidget {
       home: const SignUp(),
       routes: {
         '/home': (context) => HomeScreen(),
+        '/signup': (context) => SignUp(),
+        '/login': (context) => Signin(),
         '/open_history': (context) => OpenHistoryScreen(),
         '/warning_history': (context) => WarningHistoryScreen(),
       },

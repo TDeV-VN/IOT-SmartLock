@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1097187251228",
+    "firebase_url": "https://slock-bb631-default-rtdb.firebaseio.com",
+    "project_id": "slock-bb631",
+    "storage_bucket": "slock-bb631.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097187251228:android:6e5cb2a0060489c063fbd9",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYi7bYr50mBfGE3FrZBJ-HzN-tN31CcT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

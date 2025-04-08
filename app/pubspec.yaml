@@ -28,6 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  firebase_core: ^2.16.0
+  intl: ^0.18.0 # thư viện hỗ trợ định dạng ngày tháng
   flutter:
     sdk: flutter
 
@@ -36,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   animated_text_kit: ^4.2.3
   flutter_native_splash: ^2.4.5
+  firebase_database: ^10.5.7
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'screens/device_manager.dart';
 import 'screens/home_screen.dart';
 import 'screens/open_history.dart';
 import 'screens/warning_history.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => Signin(),
         '/open_history': (context) => OpenHistoryScreen(),
         '/warning_history': (context) => WarningHistoryScreen(),
+        '/device_manager': (context) => DeviceManagerScreen(),
       },
     );
   }

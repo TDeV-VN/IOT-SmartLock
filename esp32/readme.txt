@@ -10,9 +10,13 @@
 --------------------------------------------------------------
 - Để giao tiếp với trình mô phỏng qua wifi với máy ảo android studio: thay "localhost" bằng "10.0.2.2". Ví dụ: http://localhost:8180 -> http://10.0.2.2:8180
 
---------------------------------------------------------------
-- Tải thư viện qua PlatformIO: New terminal -> pio lib install "chris--a/Keypad@3.1.1"
-                                               pio lib install "fmalpartida/LiquidCrystal@1.5.0"
-
 --------------------------------------------------------------                      
-- Khi ấn vào nút A thì relay sẽ tắt -> đèn tắt, sau 5s relay mở -> đèn mở
+- Khi ấn vào nút # thì relay sẽ tắt -> đèn tắt, sau 5s relay mở -> đèn mở
+
+------------------------------------------------------------------
+
+NẠP CODE CHO BOARD Kit Wifi BLE ESP32 NodeMCU-32S CH340 Ai-Thinker:
+1. Tải xuống và cài đặt driver: https://www.wch.cn/download/file?id=65
+2. Vào file platformio.ini -> đổi thành "board = nodemcu-32s"
+3. Build firmware: F1 -> PlatformIO: Build.
+3. Nạp code: F1 -> PlatformIO: Upload.

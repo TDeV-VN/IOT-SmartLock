@@ -42,7 +42,7 @@ void loop() {
     delay(200);
     digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
 
-    if (key == 'A') {
+    if (key == '#') {
       // Mở khóa
       Serial.println("Mo khoa trong 5s...");
       lcd.clear();

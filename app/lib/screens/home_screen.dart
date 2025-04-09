@@ -1,143 +1,199 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:app/widgets/bottom_navigation_bar.dart';
+import 'devices_screen.dart';
+import 'profile_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  late PageController _pageController;
+  late TabController _tabController;
+  
+  late List<Widget> _screens;
+  
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      _buildHomeContent(),
+      DevicesScreen(),
+      ProfileScreen(),
+    ];
+    
+    _pageController = PageController(initialPage: _selectedIndex);
+    
+    _tabController = TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
+    
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {
+          _selectedIndex = _tabController.index;
+        });
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Daily',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F0F0F),
-                        ),
-                      ),
-                      Text(
-                        'Smart Lock',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F0F0F),
-                        ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.login, color: Colors.white),
-                    label: Text('Login', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF0F0F0F),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              _buildCategorySelector(),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Popular Features',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F0F0F),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'See all',
-                      style: TextStyle(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.85,
-                  children: [
-                    _buildFeatureCard(
-                      icon: Icons.bluetooth,
-                      title: 'Bluetooth Unlock',
-                      calories: '0 Cal',
-                      price: '\$0.00',
-                      color: Colors.blue[100]!,
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.nfc,
-                      title: 'NFC Access',
-                      calories: '0 Cal',
-                      price: '\$0.00',
-                      color: Colors.orange[100]!,
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.history,
-                      title: 'Access Log',
-                      calories: '0 Cal',
-                      price: '\$0.00',
-                      color: Colors.yellow[100]!,
-                    ),
-                    _buildFeatureCard(
-                      icon: Icons.people,
-                      title: 'User Management',
-                      calories: '0 Cal',
-                      price: '\$0.00',
-                      color: Colors.pink[100]!,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        bottom: false,
+        child: PageView(
+          controller: _pageController,
+          children: _screens,
+          onPageChanged: (index) {
+            setState(() {
+              _selectedIndex = index;
+              _tabController.animateTo(index);
+            });
+          },
+          physics: const BouncingScrollPhysics(), 
         ),
       ),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onItemSelected: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
           setState(() {
             _selectedIndex = index;
           });
         },
         items: [
-          
-          NavBarItem(icon: Icons.home, label: 'Home'),
-          NavBarItem(icon: Icons.list_alt, label: 'Order'),
-          NavBarItem(icon: Icons.shopping_cart, label: 'My Cart'),
-          NavBarItem(icon: Icons.more_horiz, label: 'More'),
+          NavBarItem(icon: Icons.home, label: 'Trang Chủ'),
+          NavBarItem(icon: Icons.devices, label: 'Thiết Bị'),
+          NavBarItem(icon: Icons.person, label: 'Tài Khoản'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F0F0F),
+                    ),
+                  ),
+                  Text(
+                    'Smart Lock',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F0F0F),
+                    ),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                icon: Icon(Icons.login, color: Colors.white),
+                label: Text('Login', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF0F0F0F),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          _buildCategorySelector(),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Popular Features',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F0F0F),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'See all',
+                  style: TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.85,
+              children: [
+                _buildFeatureCard(
+                  icon: Icons.bluetooth,
+                  title: 'Bluetooth Unlock',
+                  calories: '0 Cal',
+                  price: '\$0.00',
+                  color: Colors.blue[100]!,
+                ),
+                _buildFeatureCard(
+                  icon: Icons.nfc,
+                  title: 'NFC Access',
+                  calories: '0 Cal',
+                  price: '\$0.00',
+                  color: Colors.orange[100]!,
+                ),
+                _buildFeatureCard(
+                  icon: Icons.history,
+                  title: 'Access Log',
+                  calories: '0 Cal',
+                  price: '\$0.00',
+                  color: Colors.yellow[100]!,
+                ),
+                _buildFeatureCard(
+                  icon: Icons.people,
+                  title: 'User Management',
+                  calories: '0 Cal',
+                  price: '\$0.00',
+                  color: Colors.pink[100]!,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

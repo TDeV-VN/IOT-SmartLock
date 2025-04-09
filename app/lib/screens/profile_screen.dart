@@ -1,0 +1,136 @@
+import 'package:flutter/material.dart';
+
+class ProfileScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(  
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20),
+            Text(
+              'Tài Khoản',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F0F0F),
+              ),
+            ),
+            SizedBox(height: 20),
+            _buildProfileHeader(),
+            SizedBox(height: 30),
+            _buildSectionTitle('Cài Đặt Tài Khoản'),
+            _buildMenuOption(Icons.person, 'Thông tin cá nhân'),
+            _buildMenuOption(Icons.notifications, 'Thông báo'),
+            _buildMenuOption(Icons.security, 'Bảo mật'),
+            Divider(),
+            _buildSectionTitle('Cài Đặt Thiết Bị'),
+            _buildMenuOption(Icons.wifi, 'Kết nối mạng'),
+            _buildMenuOption(Icons.bluetooth, 'Kết nối Bluetooth'),
+            _buildMenuOption(Icons.history, 'Lịch sử truy cập'),
+            Divider(),
+            _buildSectionTitle('Khác'),
+            _buildMenuOption(Icons.help, 'Trợ giúp'),
+            _buildMenuOption(Icons.info, 'Về ứng dụng'),
+            _buildMenuOption(Icons.logout, 'Đăng xuất', isLogout: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 40,
+          backgroundColor: Colors.blue[100],
+          child: Icon(
+            Icons.person,
+            size: 50,
+            color: Colors.blue[800],
+          ),
+        ),
+        SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Nguyễn Văn A',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'nguyenvana@email.com',
+              style: TextStyle(
+                color: Colors.grey[600],
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.blue[300]!),
+              ),
+              child: Text(
+                'Chỉnh sửa hồ sơ',
+                style: TextStyle(
+                  color: Colors.blue[700],
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[800],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuOption(IconData icon, String title, {bool isLogout = false}) {
+    return ListTile(
+      leading: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isLogout ? Colors.red[50] : Colors.blue[50],
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isLogout ? Colors.red : Colors.blue[700],
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isLogout ? Colors.red : Colors.black87,
+          fontWeight: isLogout ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isLogout 
+          ? null 
+          : Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+      onTap: () {},
+    );
+  }
+}

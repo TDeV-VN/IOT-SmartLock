@@ -7,14 +7,15 @@ class NavBarItem {
   NavBarItem({required this.icon, required this.label});
 }
 
-class CustomBottomNavBar extends StatelessWidget {
+class CustomBottomNavBar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
   final List<NavBarItem> items;
   
   final Color backgroundColor;
   final Color navBarColor;
-  final Color iconColor;
+  final Color selectedItemColor;
+  final Color unselectedItemColor;
   final double iconSize;
   final double height;
 
@@ -24,25 +25,82 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.items,
     this.backgroundColor = Colors.white, 
     this.navBarColor = Colors.black,     
-    this.iconColor = Colors.white,      
-    this.iconSize = 22.0,
-    this.height = 75.0,
+    this.selectedItemColor = Colors.white,
+    this.unselectedItemColor = Colors.grey,      
+    this.iconSize = 20.0,
+    this.height = 60.0,
   });
+
+  @override
+  _CustomBottomNavBarState createState() => _CustomBottomNavBarState();
+}
+
+class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
+  Map<int, int> _tapCount = {};
+  Map<int, DateTime> _lastTapTime = {};
+  
+  final Duration _resetDuration = Duration(seconds: 3);
+  final int _tapThreshold = 3;
+
+  @override
+  void initState() {
+    super.initState();
+    for (int i = 0; i < widget.items.length; i++) {
+      _tapCount[i] = 0;
+    }
+  }
+
+  void _handleTap(int index) {
+    final now = DateTime.now();
+    
+    if (index == widget.selectedIndex) {
+      if (_lastTapTime.containsKey(index) && 
+          now.difference(_lastTapTime[index]!) > _resetDuration) {
+        _tapCount[index] = 1;  
+      } else {
+        _tapCount[index] = (_tapCount[index] ?? 0) + 1;  
+      }
+      
+      _lastTapTime[index] = now;
+      
+      if (_tapCount[index]! >= _tapThreshold) {
+        _showTapNotification(index);
+        _tapCount[index] = 0;  
+      }
+    } else {
+      _tapCount[index] = 1;
+      _lastTapTime[index] = now;
+      
+      widget.onItemSelected(index);
+    }
+  }
+  
+  void _showTapNotification(int index) {
+    final String tabName = widget.items[index].label;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Bạn đã nhấn vào tab "$tabName" nhiều lần'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
-      color: backgroundColor,
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      height: widget.height,
+      color: widget.backgroundColor,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Container(
         decoration: BoxDecoration(
-          color: navBarColor, 
-          borderRadius: BorderRadius.circular(40),
+          color: widget.navBarColor, 
+          borderRadius: BorderRadius.circular(25),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(items.length, (index) {
+          children: List.generate(widget.items.length, (index) {
             return _buildNavItem(index);
           }),
         ),
@@ -51,17 +109,35 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem(int index) {
-    final bool isSelected = selectedIndex == index;
+    final bool isSelected = widget.selectedIndex == index;
     
     return InkWell(
-      onTap: () => onItemSelected(index),
-      borderRadius: BorderRadius.circular(30),
+      onTap: () => _handleTap(index),
+      borderRadius: BorderRadius.circular(15),
       child: Container(
-        padding: EdgeInsets.all(10),
-        child: Icon(
-          items[index].icon,
-          color: iconColor, 
-          size: iconSize,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.withOpacity(0.3) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              widget.items[index].icon,
+              color: isSelected ? widget.selectedItemColor : widget.unselectedItemColor, 
+              size: widget.iconSize,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              widget.items[index].label,
+              style: TextStyle(
+                color: isSelected ? widget.selectedItemColor : widget.unselectedItemColor,
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ),
     );

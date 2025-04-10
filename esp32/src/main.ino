@@ -1,6 +1,7 @@
 #include <Keypad.h>
 #include <LiquidCrystal.h>
 #include <gpo_config.h>
+#include "firebase_handler.h"
 
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
@@ -23,9 +24,12 @@ void setup() {
   
   // Cấu hình buzzer
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
+
+  firebaseSetup();
 }
 
 void loop() {
+  firebaseLoop();
   char key = keypad.getKey();
   
   if (key) {

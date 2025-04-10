@@ -1,0 +1,83 @@
+name: Build and Release Firmware
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build firmware (in esp32 folder)
+        run: |
+          cd esp32
+          pio run
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: esp32/.pio/build/*/firmware.bin
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: ./firmware
+
+      - name: Rename firmware with version
+        run: |
+          version=${GITHUB_REF#refs/tags/}
+          find ./firmware -name "*.bin" -exec mv {} ./firmware/firmware_${version}.bin \;
+
+      # - name: Create GitHub Release and Upload Binary
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: ./firmware/**/*.bin
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push firmware to public repo
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          version=${GITHUB_REF#refs/tags/}
+          git clone https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/TDeV-VN/IOT-SmartLock-Firmware.git public-firmware
+          cp firmware/firmware_${version}.bin public-firmware/
+          cd public-firmware
+          git checkout -b firmware
+          git pull --rebase origin firmware
+          echo "{ \"version\": \"${version}\", \"filename\": \"firmware_${version}.bin\", \"url\": \"https://raw.githubusercontent.com/TDeV-VN/IOT-SmartLock-Firmware/firmware/firmware_${version}.bin\" }" > latest.json
+          git add .
+          git commit -m "Add firmware ${version}"
+          git push origin firmware
+
+      - name: Notify via FCM Topic
+        run: |
+          curl -X POST https://iot-smartlock-firmware.onrender.com/send-topic \
+            -H "Content-Type: application/json" \
+            -d '{
+              "topic": "NewFirmware",
+              "title": "Cập nhật firmware",
+              "body": "Đã có bản cập nhật firmware ${version} cho khóa cửa"
+            }'
+        env:
+          version: ${GITHUB_REF#refs/tags/}

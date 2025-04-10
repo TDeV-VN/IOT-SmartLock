@@ -1,22 +1,25 @@
-
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:app/constant.dart'
+    as constants; // Sử dụng alias để tránh xung đột
 import 'package:app/widgets/bottom_navigation_bar.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key); // Thêm const constructor
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late PageController _pageController;
   late TabController _tabController;
-  
   late List<Widget> _screens;
-  
+
   @override
   void initState() {
     super.initState();
@@ -25,11 +28,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       DevicesScreen(),
       ProfileScreen(),
     ];
-    
+
     _pageController = PageController(initialPage: _selectedIndex);
-    
-    _tabController = TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
-    
+    _tabController =
+        TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
+
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -38,14 +41,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       }
     });
   }
-  
+
   @override
   void dispose() {
     _pageController.dispose();
     _tabController.dispose();
     super.dispose();
   }
-  
+
+  Future<void> _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đăng xuất thất bại: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               _tabController.animateTo(index);
             });
           },
-          physics: const BouncingScrollPhysics(), 
+          physics: const BouncingScrollPhysics(),
         ),
       ),
       bottomNavigationBar: CustomBottomNavBar(
@@ -68,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         onItemSelected: (index) {
           _pageController.animateToPage(
             index,
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
           setState(() {
@@ -85,12 +102,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildHomeContent() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -102,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F0F0F),
+                      color: constants.grayshade, // Sử dụng màu từ constants
                     ),
                   ),
                   Text(
@@ -110,29 +127,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F0F0F),
+                      color: constants.grayshade,
                     ),
                   ),
                 ],
               ),
               ElevatedButton.icon(
-                icon: Icon(Icons.login, color: Colors.white),
-                label: Text('Login', style: TextStyle(color: Colors.white)),
+                icon: Icon(Icons.logout, color: constants.whiteshade),
+                label: Text(
+                  'Đăng xuất',
+                  style: TextStyle(color: constants.whiteshade),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0F0F0F),
-                  foregroundColor: Colors.white,
+                  backgroundColor: constants.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
-                onPressed: () {},
+                onPressed: _signOut,
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildCategorySelector(),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -141,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F0F0F),
+                  color: constants.grayshade,
                 ),
               ),
               TextButton(
@@ -149,51 +169,54 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: Text(
                   'See all',
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: constants.grayshade.withOpacity(0.7),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 10),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.85,
-              children: [
-                _buildFeatureCard(
-                  icon: Icons.bluetooth,
-                  title: 'Bluetooth Unlock',
-                  calories: '0 Cal',
-                  price: '\$0.00',
-                  color: Colors.blue[100]!,
-                ),
-                _buildFeatureCard(
-                  icon: Icons.nfc,
-                  title: 'NFC Access',
-                  calories: '0 Cal',
-                  price: '\$0.00',
-                  color: Colors.orange[100]!,
-                ),
-                _buildFeatureCard(
-                  icon: Icons.history,
-                  title: 'Access Log',
-                  calories: '0 Cal',
-                  price: '\$0.00',
-                  color: Colors.yellow[100]!,
-                ),
-                _buildFeatureCard(
-                  icon: Icons.people,
-                  title: 'User Management',
-                  calories: '0 Cal',
-                  price: '\$0.00',
-                  color: Colors.pink[100]!,
-                ),
-              ],
-            ),
+          const SizedBox(height: 10),
+          GridView.count(
+            shrinkWrap:
+                true, // Để GridView hoạt động trong SingleChildScrollView
+            physics:
+                const NeverScrollableScrollPhysics(), // Tắt cuộn riêng của GridView
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 0.85,
+            children: [
+              _buildFeatureCard(
+                icon: Icons.bluetooth,
+                title: 'Bluetooth Unlock',
+                calories: '0 Cal',
+                price: '\$0.00',
+                color: Colors.blue[100]!,
+              ),
+              _buildFeatureCard(
+                icon: Icons.nfc,
+                title: 'NFC Access',
+                calories: '0 Cal',
+                price: '\$0.00',
+                color: Colors.orange[100]!,
+              ),
+              _buildFeatureCard(
+                icon: Icons.history,
+                title: 'Access Log',
+                calories: '0 Cal',
+                price: '\$0.00',
+                color: Colors.yellow[100]!,
+              ),
+              _buildFeatureCard(
+                icon: Icons.people,
+                title: 'User Management',
+                calories: '0 Cal',
+                price: '\$0.00',
+                color: Colors.pink[100]!,
+              ),
+            ],
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -215,15 +238,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildCategoryButton(String title, bool isSelected) {
     return Container(
-      margin: EdgeInsets.only(right: 10),
+      margin: const EdgeInsets.only(right: 10),
       child: ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Color(0xFF0F0F0F) : Colors.white,
-          foregroundColor: isSelected ? Colors.white : Colors.black,
+          backgroundColor: isSelected ? constants.blue : constants.whiteshade,
+          foregroundColor:
+              isSelected ? constants.whiteshade : constants.grayshade,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.grey.shade300),
+            side: BorderSide(color: constants.grayshade.withOpacity(0.3)),
           ),
           elevation: 0,
         ),
@@ -241,14 +265,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: constants.whiteshade,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: constants.grayshade.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -259,13 +283,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: Container(
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(15)),
               ),
               child: Center(
                 child: Icon(
                   icon,
                   size: 60,
-                  color: Color(0xFF0F0F0F),
+                  color: constants.grayshade,
                 ),
               ),
             ),
@@ -277,26 +302,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   calories,
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: constants.grayshade,
                     fontSize: 14,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       price,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.deepOrange,
                         fontWeight: FontWeight.bold,
                       ),
@@ -306,10 +331,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         color: Colors.deepOrange,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(4),
                       child: Icon(
                         Icons.add,
-                        color: Colors.white,
+                        color: constants.whiteshade,
                         size: 18,
                       ),
                     ),

@@ -1,151 +1,206 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:app/constant.dart';
+import 'package:app/constant.dart' as constants; // Thêm alias 'constants'
 import 'signupScreen.dart';
 
-class Signin extends StatelessWidget {
+class Signin extends StatefulWidget {
   const Signin({Key? key}) : super(key: key);
+
+  @override
+  _SigninState createState() => _SigninState();
+}
+
+class _SigninState extends State<Signin> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String? _errorMessage;
+
+  Future<void> _signIn() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        switch (e.code) {
+          case 'user-not-found':
+            _errorMessage = 'Email không tồn tại';
+            break;
+          case 'wrong-password':
+            _errorMessage = 'Sai mật khẩu';
+            break;
+          case 'invalid-email':
+            _errorMessage = 'Email không đúng định dạng';
+            break;
+          default:
+            _errorMessage = 'Đã có lỗi xảy ra: ${e.message}';
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-          child: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            color: blue,
-          ),
-          const TopSginin(),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.10,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.9,
+        child: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  color: whiteshade,
+              color: constants.blue, // Sử dụng constants.blue
+            ),
+            TopSginin(),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.10,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  color: constants.whiteshade, // Sử dụng constants.whiteshade
                   borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(45),
-                      topRight: Radius.circular(45))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 250,
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    margin: EdgeInsets.only(
-                        left: MediaQuery.of(context).size.width * 0.09),
-                    child: Image.asset("assets/images/login.png"),
+                    topLeft: Radius.circular(45),
+                    topRight: Radius.circular(45),
                   ),
-                  InputField(headerText: "Username", hintTexti: "Username"),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  // InputField(
-                  //   headerText: "Email",
-                  //   hintTexti: "dion@example.com",
-                  //   visible: false,
-                  // ),
-                  // const SizedBox(
-                  //   height: 10,
-                  // ),
-                  InputFieldPassword(
-                      headerText: "Password",
-                      hintTexti: "At least 8 Charecter"),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const CheckerBox(),
                       Container(
-                        margin: EdgeInsets.only(right: 20),
-                        child: InkWell(
-                          onTap: () {},
+                        height: 250,
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        margin: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.width * 0.09,
+                        ),
+                        child: Image.asset("assets/images/login.png"),
+                      ),
+                      InputField(
+                        headerText: "Email",
+                        hintTexti: "dion@example.com",
+                        controller: _emailController,
+                      ),
+                      const SizedBox(height: 10),
+                      InputFieldPassword(
+                        headerText: "Password",
+                        hintTexti: "At least 8 Characters",
+                        controller: _passwordController,
+                      ),
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                           child: Text(
-                            "Forgot Password?",
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CheckerBox(),
+                          Container(
+                            margin: const EdgeInsets.only(right: 20),
+                            child: InkWell(
+                              onTap: () {},
+                              child: Text(
+                                "Forgot Password?",
+                                style: TextStyle(
+                                  color: constants.blue.withOpacity(
+                                      0.7), // Sử dụng constants.blue
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      InkWell(
+                        onTap: _signIn,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.07,
+                          margin: const EdgeInsets.only(left: 20, right: 20),
+                          decoration: BoxDecoration(
+                            color: constants.blue, // Sử dụng constants.blue
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Sign in",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                color: constants
+                                    .whiteshade, // Sử dụng constants.whiteshade
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.width * 0.149,
+                          top: MediaQuery.of(context).size.height * 0.08,
+                        ),
+                        child: Text.rich(
+                          TextSpan(
+                            text: "Don't already Have an account? ",
                             style: TextStyle(
-                                color: blue.withOpacity(0.7),
-                                fontWeight: FontWeight.w500),
+                              color: constants.grayshade.withOpacity(
+                                  0.8), // Sử dụng constants.grayshade
+                              fontSize: 16,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: "Sign Up",
+                                style: TextStyle(
+                                  color:
+                                      constants.blue, // Sử dụng constants.blue
+                                  fontSize: 16,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const SignUp(),
+                                      ),
+                                    );
+                                  },
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  InkWell(
-                    onTap: () {
-                      print("Sign up click");
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.07,
-                      margin: const EdgeInsets.only(left: 20, right: 20),
-                      decoration: BoxDecoration(
-                          color: blue,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10))),
-                      child: Center(
-                        child: Text(
-                          "Sign in",
-                          style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: whiteshade),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(
-                        left: MediaQuery.of(context).size.width * 0.149,
-                        top: MediaQuery.of(context).size.height * 0.08),
-                    child: Text.rich(
-                      TextSpan(
-                          text: "Don't already Have an account? ",
-                          style: TextStyle(
-                              color: grayshade.withOpacity(0.8), fontSize: 16),
-                          children: [
-                            TextSpan(
-                                text: "Sign Up",
-                                style: TextStyle(color: blue, fontSize: 16),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => SignUp()));
-                                    print("Sign Up click");
-                                  }),
-                          ]),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class CheckerBox extends StatefulWidget {
-  const CheckerBox({
-    Key? key,
-  }) : super(key: key);
+  CheckerBox({Key? key}) : super(key: key);
 
   @override
   State<CheckerBox> createState() => _CheckerBoxState();
 }
 
 class _CheckerBoxState extends State<CheckerBox> {
-  bool? isCheck;
-  @override
-  void initState() {
-    // TODO: implement initState
-    isCheck = false;
-    super.initState();
-  }
+  bool isCheck = false;
 
   @override
   Widget build(BuildContext context) {
@@ -155,19 +210,23 @@ class _CheckerBoxState extends State<CheckerBox> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Checkbox(
-              value: isCheck,
-              checkColor: whiteshade, // color of tick Mark
-              activeColor: blue,
-              onChanged: (val) {
-                setState(() {
-                  isCheck = val!;
-                  print(isCheck);
-                });
-              }),
+            value: isCheck,
+            checkColor: constants.whiteshade, // Sử dụng constants.whiteshade
+            activeColor: constants.blue, // Sử dụng constants.blue
+            onChanged: (val) {
+              setState(() {
+                isCheck = val!;
+              });
+            },
+          ),
           Text.rich(
             TextSpan(
               text: "Remember me",
-              style: TextStyle(color: grayshade.withOpacity(0.8), fontSize: 16),
+              style: TextStyle(
+                color: constants.grayshade
+                    .withOpacity(0.8), // Sử dụng constants.grayshade
+                fontSize: 16,
+              ),
             ),
           ),
         ],
@@ -176,12 +235,17 @@ class _CheckerBoxState extends State<CheckerBox> {
   }
 }
 
-// ignore: must_be_immutable
 class InputField extends StatelessWidget {
-  String headerText;
-  String hintTexti;
-  InputField({Key? key, required this.headerText, required this.hintTexti})
-      : super(key: key);
+  final String headerText;
+  final String hintTexti;
+  final TextEditingController? controller;
+
+  const InputField({
+    Key? key,
+    required this.headerText,
+    required this.hintTexti,
+    this.controller,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -189,38 +253,34 @@ class InputField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(
-            left: 20,
-            right: 20,
-            bottom: 10,
-          ),
-          child: Text(
-            headerText,
-            style: const TextStyle(
-                color: Colors.black, fontSize: 22, fontWeight: FontWeight.w500),
+          margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+          child: const Text(
+            "Email",
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         Container(
-            margin: const EdgeInsets.only(left: 20, right: 20),
-            decoration: BoxDecoration(
-              color: grayshade.withOpacity(0.5),
-              // border: Border.all(
-              //   width: 1,
-              // ),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: hintTexti,
-                  border: InputBorder.none,
-                ),
+          margin: const EdgeInsets.only(left: 20, right: 20),
+          decoration: BoxDecoration(
+            color: constants.grayshade
+                .withOpacity(0.5), // Sử dụng constants.grayshade
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: hintTexti,
+                border: InputBorder.none,
               ),
-            )
-            //IntrinsicHeight
-
             ),
+          ),
+        ),
       ],
     );
   }
@@ -229,10 +289,14 @@ class InputField extends StatelessWidget {
 class InputFieldPassword extends StatefulWidget {
   final String headerText;
   final String hintTexti;
+  final TextEditingController? controller;
 
-  InputFieldPassword(
-      {Key? key, required this.headerText, required this.hintTexti})
-      : super(key: key);
+  const InputFieldPassword({
+    Key? key,
+    required this.headerText,
+    required this.hintTexti,
+    this.controller,
+  }) : super(key: key);
 
   @override
   State<InputFieldPassword> createState() => _InputFieldPasswordState();
@@ -247,41 +311,42 @@ class _InputFieldPasswordState extends State<InputFieldPassword> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(
-            left: 20,
-            right: 20,
-            bottom: 10,
-          ),
+          margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
           child: Text(
             widget.headerText,
             style: const TextStyle(
-                color: Colors.black, fontSize: 22, fontWeight: FontWeight.w500),
+              color: Colors.black,
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         Container(
           margin: const EdgeInsets.only(left: 20, right: 20),
           decoration: BoxDecoration(
-            color: grayshade.withOpacity(0.5),
-            // border: Border.all(
-            //   width: 1,
-            // ),
+            color: constants.grayshade
+                .withOpacity(0.5), // Sử dụng constants.grayshade
             borderRadius: BorderRadius.circular(15),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: TextField(
+              controller: widget.controller,
               obscureText: _visible,
               decoration: InputDecoration(
-                  hintText: widget.hintTexti,
-                  border: InputBorder.none,
-                  suffixIcon: IconButton(
-                      icon: Icon(
-                          _visible ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          _visible = !_visible;
-                        });
-                      })),
+                hintText: widget.hintTexti,
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _visible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _visible = !_visible;
+                    });
+                  },
+                ),
+              ),
             ),
           ),
         ),
@@ -291,9 +356,7 @@ class _InputFieldPasswordState extends State<InputFieldPassword> {
 }
 
 class TopSginin extends StatelessWidget {
-  const TopSginin({
-    Key? key,
-  }) : super(key: key);
+  TopSginin({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -305,16 +368,17 @@ class TopSginin extends StatelessWidget {
         children: [
           Icon(
             Icons.arrow_back_sharp,
-            color: whiteshade,
+            color: constants.whiteshade, // Sử dụng constants.whiteshade
             size: 40,
           ),
-          const SizedBox(
-            width: 15,
-          ),
+          const SizedBox(width: 15),
           Text(
             "Sign In",
-            style: TextStyle(color: whiteshade, fontSize: 25),
-          )
+            style: TextStyle(
+              color: constants.whiteshade, // Sử dụng constants.whiteshade
+              fontSize: 25,
+            ),
+          ),
         ],
       ),
     );

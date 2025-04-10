@@ -1,61 +1,74 @@
-#include <WiFi.h>
 #include <FirebaseESP32.h>
+#include <Preferences.h>
 #include "gpo_config.h"
 
 #define FIREBASE_HOST "https://slock-bb631-default-rtdb.firebaseio.com/"
 #define FIREBASE_AUTH "AIzaSyBUmpTr3r3gfn7erG-KYPMoUXXbseVPOSs"
 
 FirebaseData fbdo;
+Preferences preferences;
 
 bool isUnlocking = false;
+String currentPinCode = "";
 
 void firebaseSetup() {
-  WiFi.begin("Wokwi-GUEST", "", 6);
-  Serial.print("Đang kết nối WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.println("\n✅ WiFi đã kết nối!");
-
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.reconnectWiFi(true);
 
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
   digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); 
 
-  Serial.println("✅ Firebase đã khởi động!");
+  preferences.begin("config", false);
+  currentPinCode = preferences.getString("pinCode", "");
+  Serial.printf("PIN code hiện tại từ NVS: %s\n", currentPinCode.c_str());
+
+  Serial.println("Firebase đã khởi động!");
 }
 
-void firebaseLoop() {
-  if (Firebase.getBool(fbdo, "/lock/lock_id1/locking_status")) {
+void firebaseLoop(const String& lockId) {
+  String basePath = "/lock/" + lockId;
+
+  // 1. Kiểm tra locking_status
+  if (Firebase.getBool(fbdo, basePath + "/locking_status")) {
     bool locking = fbdo.boolData();
-    Serial.printf("🔄 Trạng thái locking_status = %s\n", locking ? "true" : "false");
+    Serial.printf("[%s] locking_status = %s\n", lockId.c_str(), locking ? "true" : "false");
 
     if (!locking && !isUnlocking) {
       isUnlocking = true;
 
-      // Mở khóa (relay off)
-      Serial.println("🔓 Mở khóa (tắt relay) trong 5s...");
+      // Mở khóa
+      Serial.println("Mở khóa (tắt relay) trong 5s...");
       digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
       delay(5000);
 
-      // Đóng khóa (relay on)
-      Serial.println("🔒 Khóa lại (bật relay). Cập nhật Firebase...");
+      // Đóng khóa lại
+      Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
 
-      // Cập nhật lại lên Firebase
-      if (Firebase.setBool(fbdo, "/lock/lock_id1/locking_status", true)) {
+      if (Firebase.setBool(fbdo, basePath + "/locking_status", true)) {
         Serial.println("Đã cập nhật locking_status = true");
       } else {
-        Serial.println("❌ Lỗi khi cập nhật Firebase");
+        Serial.printf("Lỗi khi cập nhật Firebase: %s\n", fbdo.errorReason().c_str());
       }
 
       isUnlocking = false;
     }
   } else {
-    Serial.printf("❌ Lỗi khi đọc locking_status: %s\n", fbdo.errorReason().c_str());
+    Serial.printf("Lỗi khi đọc locking_status: %s\n", fbdo.errorReason().c_str());
   }
 
-  delay(5000); // Đợi 5s rồi lặp lại
+  // 2. Kiểm tra và cập nhật pin_code nếu thay đổi
+  if (Firebase.getString(fbdo, basePath + "/pin_code")) {
+    String newPin = fbdo.stringData();
+    if (newPin != currentPinCode) {
+      Serial.printf("Phát hiện PIN code mới từ Firebase: %s\n", newPin.c_str());
+      preferences.putString("pinCode", newPin);
+      currentPinCode = newPin;
+      Serial.println("Đã cập nhật pinCode vào NVS.");
+    }
+  } else {
+    Serial.printf("Lỗi khi đọc pin_code: %s\n", fbdo.errorReason().c_str());
+  }
+
+  delay(5000);
 }

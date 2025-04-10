@@ -1,8 +1,10 @@
+#include <WiFi.h>
 #include <Keypad.h>
 #include <LiquidCrystal.h>
-#include <gpo_config.h>
+#include "gpo_config.h"
 #include "firebase_handler.h"
 
+String lockId = "lock_id1";
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
@@ -25,11 +27,18 @@ void setup() {
   // Cấu hình buzzer
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
+  WiFi.begin("Wokwi-GUEST", "", 6);
+  Serial.print("Dang ket noi wifi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("\nWifi da ket noi!");
+  
   firebaseSetup();
 }
 
 void loop() {
-  firebaseLoop();
   char key = keypad.getKey();
   
   if (key) {
@@ -79,4 +88,5 @@ void loop() {
       lcd.print("ESP32 Keypad Test");
     }
   }
+  firebaseLoop(lockId);
 }

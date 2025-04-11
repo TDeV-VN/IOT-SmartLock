@@ -97,14 +97,23 @@ void handleLockControl(Keypad &keypad, LiquidCrystal &lcd) {
                     preferences.end();
 
                     if (incorrectAttempts >= 5) {
+                        lcd.clear();
                         lcd.setCursor(0, 0);
                         lcd.print("Vo hieu hoa khoa!");
                         Serial.println("Vô hiệu hóa mã khóa");
-                        delay(3000);
+                    
+                        unsigned long buzzerStart = millis();
+                        while (millis() - buzzerStart < 180000) { // 3 phút = 180000ms
+                            digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
+                            delay(1000);  // kêu 1 giây
+                            digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
+                            delay(1000);  // nghỉ 1 giây
+                        }
+                    
                         lcd.clear();
                         return;
                     }
-
+                    
                     lcd.setCursor(0, 0);
                     lcd.print("Nhap ma khoa");
                 }

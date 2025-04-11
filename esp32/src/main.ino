@@ -40,7 +40,7 @@ void setup() {
 
 void loop() {
   char key = keypad.getKey();
-  
+
   if (key) {
     Serial.print("Phim nhan: ");
     Serial.println(key);
@@ -50,7 +50,7 @@ void loop() {
     lcd.print(key);
     lcd.print("    "); // Xóa kí tự cũ
 
-    // Bật buzzer khi nhấn phím bất kỳ
+    // Buzzer
     digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
     delay(200);
     digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
@@ -62,31 +62,31 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Mo khoa...");
       
-      digitalWrite(GPO_CONFIG::RELAY_PIN, LOW); // Bật relay (nếu là relay LOW-level trigger)
-      delay(5000); // Giữ relay bật trong 5 giây
-      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Tắt relay
+      digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
+      delay(5000);
+      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
+
       Serial.println("Khoa dong!");
-      
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Khoa dong!");
     }
 
     if (key == 'B') {
-      // Đóng khóa ngay lập tức
       Serial.println("Khoa dong ngay lap tuc!");
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Khoa dong!");
-      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Tắt relay ngay lập tức
+      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
     }
 
     if (key == '#') {
-      // Xóa màn hình khi nhấn "#"
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("ESP32 Keypad Test");
     }
   }
+
+  // Firebase loop không chặn chương trình
   firebaseLoop(lockId);
 }

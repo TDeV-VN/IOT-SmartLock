@@ -26,6 +26,11 @@ void firebaseSetup() {
 }
 
 void firebaseLoop(const String& lockId) {
+  static unsigned long lastRun = 0;
+  unsigned long interval = 5000; // 5 giây
+  if (millis() - lastRun < interval) return;
+  lastRun = millis();
+
   String basePath = "/lock/" + lockId;
 
   // 1. Kiểm tra locking_status
@@ -39,11 +44,9 @@ void firebaseLoop(const String& lockId) {
       // Mở khóa
       Serial.println("Mở khóa (tắt relay) trong 5s...");
       digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
-      delay(5000);
-
-      // Đóng khóa lại
-      Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
+      delay(5000); // Có thể dùng millis nếu muốn non-blocking hoàn toàn
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
+      Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
 
       if (Firebase.setBool(fbdo, basePath + "/locking_status", true)) {
         Serial.println("Đã cập nhật locking_status = true");
@@ -69,6 +72,4 @@ void firebaseLoop(const String& lockId) {
   } else {
     Serial.printf("Lỗi khi đọc pin_code: %s\n", fbdo.errorReason().c_str());
   }
-
-  delay(5000);
 }

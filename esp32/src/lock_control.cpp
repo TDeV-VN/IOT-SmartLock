@@ -3,7 +3,7 @@
 #include <Preferences.h>  
 #include <gpo_config.h>
 
-Preferences preferences;
+Preferences preferences_lockcontrol;
 // int incorrectAttempts; // Số lần nhập sai
 String enteredPassword = ""; // Mã khóa nhập vào
 
@@ -18,10 +18,10 @@ const unsigned long wrongAttemptResetDuration = 1800000; // 30 phút (1,800,000 
 static unsigned long lastWrongAttemptTime = 0; // Biến lưu thời gian của lần thử sai cuối cùng
 static unsigned long lastKeypressTime = 0; // Biến lưu thời gian nhấn phím cuối cùng
 int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts) {
-    preferences.begin("config", false);
-    incorrectAttempts = preferences.getInt("incorrectAttempts", incorrectAttempts);  // Đọc lại số lần sai từ NVS
+    preferences_lockcontrol.begin("config", false);
+    incorrectAttempts = preferences_lockcontrol.getInt("incorrectAttempts", incorrectAttempts);  // Đọc lại số lần sai từ NVS
     Serial.println("Số lần sai: " + String(incorrectAttempts));  // In số lần sai từ NVS
-    preferences.end();
+    preferences_lockcontrol.end();
 
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -77,9 +77,9 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
                     lcd.print("Mo khoa thanh cong!");
                     delay(2000);
                     lcd.clear();
-                    preferences.begin("config", false);
-                    preferences.putInt("incorrectAttempts", 0);  // Reset số lần sai khi nhập đúng
-                    preferences.end();
+                    preferences_lockcontrol.begin("config", false);
+                    preferences_lockcontrol.putInt("incorrectAttempts", 0);  // Reset số lần sai khi nhập đúng
+                    preferences_lockcontrol.end();
                     return 0;  // Reset incorrectAttempts về 0
                 } else {
                     lcd.clear();
@@ -92,9 +92,9 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
                     lastWrongAttemptTime = currentMillis;
 
                     // Lưu lại số lần sai vào NVS ngay sau mỗi lần sai
-                    preferences.begin("config", false);
-                    preferences.putInt("incorrectAttempts", incorrectAttempts); // Lưu lại số lần sai vào NVS
-                    preferences.end();
+                    preferences_lockcontrol.begin("config", false);
+                    preferences_lockcontrol.putInt("incorrectAttempts", incorrectAttempts); // Lưu lại số lần sai vào NVS
+                    preferences_lockcontrol.end();
 
                     // Kiểm tra nếu sai 5 lần liên tiếp
                     if (incorrectAttempts >= 5) {
@@ -124,9 +124,9 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
         // Reset bộ đếm nếu sau 30 phút
         if (incorrectAttempts >= 5 && (currentMillis - lastWrongAttemptTime > wrongAttemptResetDuration)) {
             incorrectAttempts = 0;
-            preferences.begin("config", false);
-            preferences.putInt("incorrectAttempts", 0); // Reset lại khi đủ 30 phút
-            preferences.end();
+            preferences_lockcontrol.begin("config", false);
+            preferences_lockcontrol.putInt("incorrectAttempts", 0); // Reset lại khi đủ 30 phút
+            preferences_lockcontrol.end();
         }
 
         delay(50); // tránh chiếm CPU toàn bộ

@@ -3,11 +3,14 @@
 #include <LiquidCrystal.h>
 #include <gpo_config.h>
 #include "lock_control.h" 
+#include <WiFi.h>
+#include "firebase_handler.h"
 
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();
 void handleWifiClient();
 
+String lockId = "lock_id1";
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
@@ -33,13 +36,21 @@ void setup() {
   // Cấu hình buzzer
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
-  // Khởi động WiFi Server:
-  setupWifiServer();
+  // Kết nối wifi
+  WiFi.begin("Wokwi-GUEST", "", 6);
+  Serial.print("Dang ket noi wifi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("\nWifi da ket noi!");
+  
+  firebaseSetup();
 }
 
 void loop() {
   // Thêm dòng này để xử lý client web server:
-  handleWifiClient();
+  // handleWifiClient();
 
   char key = keypad.getKey();
   if (key == '*') {
@@ -48,4 +59,7 @@ void loop() {
     incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);  
     Serial.println("Số lần sai sau khi nhập mã 1: " + String(incorrectAttempts));  // In số lần sai sau khi nhập mã
   }
+
+  // Firebase loop không chặn chương trình
+  firebaseLoop(lockId);
 }

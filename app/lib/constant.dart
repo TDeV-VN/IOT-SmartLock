@@ -6,5 +6,5 @@ Color blue = const Color(0xFF1137FF);
 Color lightblueshade = const Color(0xFF758CC8);
 Color grayshade = const Color(0xFF9FA4AF);
 Color lightblue = const Color(0xFF4B68D1);
-Color blackshade = const Color(0xFF555555);
+Color blackshade = const Color(0xFF737E88);
 Color primary1 = const Color(0xFF333A3F);

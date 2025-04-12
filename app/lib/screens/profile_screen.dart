@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/custom_appbar.dart';
+import 'package:app/constant.dart' as constants;
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -20,11 +21,6 @@ class ProfileScreen extends StatelessWidget {
             _buildMenuOption(Icons.person, 'Thông tin cá nhân'),
             _buildMenuOption(Icons.notifications, 'Thông báo'),
             _buildMenuOption(Icons.security, 'Bảo mật'),
-            Divider(),
-            _buildSectionTitle('Cài Đặt Thiết Bị'),
-            _buildMenuOption(Icons.wifi, 'Kết nối mạng'),
-            _buildMenuOption(Icons.bluetooth, 'Kết nối Bluetooth'),
-            _buildMenuOption(Icons.history, 'Lịch sử truy cập'),
             Divider(),
             _buildSectionTitle('Khác'),
             _buildMenuOption(Icons.help, 'Trợ giúp'),
@@ -55,11 +51,11 @@ class ProfileScreen extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 40,
-          backgroundColor: Colors.blue[100],
+          backgroundColor: constants.blackshade,
           child: Icon(
             Icons.person,
             size: 50,
-            color: Colors.blue[800],
+            color: constants.whiteshade,
           ),
         ),
         SizedBox(width: 16),
@@ -121,12 +117,12 @@ class ProfileScreen extends StatelessWidget {
       leading: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isLogout ? Colors.red[50] : Colors.blue[50],
+          color: isLogout ? Colors.red[50] : constants.blackshade,
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: isLogout ? Colors.red : Colors.blue[700],
+          color: isLogout ? Colors.red : constants.whiteshade,
         ),
       ),
       title: Text(

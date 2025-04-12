@@ -6,6 +6,8 @@
 #include <WiFi.h>
 #include "firebase_handler.h"
 
+#define FIRMWARE_VERSION "1.0.0"
+
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();
 void handleWifiClient();

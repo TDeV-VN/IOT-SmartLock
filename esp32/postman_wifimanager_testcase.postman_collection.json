@@ -1,0 +1,146 @@
+{
+	"info": {
+		"_postman_id": "7ec653e1-6ad6-4196-975d-ef40719e7f90",
+		"name": "postman_wifimanager_testcase",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44011504"
+	},
+	"item": [
+		{
+			"name": "GET/scan-wifi/",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.4.1/scan-wifi/",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"4",
+						"1"
+					],
+					"path": [
+						"scan-wifi",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST /connect-wifi/",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cache-Control",
+						"value": "no-cache",
+						"name": "cache-control",
+						"type": "text"
+					},
+					{
+						"key": "Postman-Token",
+						"value": "<calculated when request is sent>",
+						"name": "postman-token",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data; boundary=<calculated when request is sent>",
+						"name": "content-type",
+						"type": "text"
+					},
+					{
+						"key": "Content-Length",
+						"value": "<calculated when request is sent>",
+						"name": "content-length",
+						"type": "text"
+					},
+					{
+						"key": "Host",
+						"value": "<calculated when request is sent>",
+						"name": "host",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "PostmanRuntime/7.39.1",
+						"name": "user-agent",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"name": "accept",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "gzip, deflate, br",
+						"name": "accept-encoding",
+						"type": "text"
+					},
+					{
+						"key": "Connection",
+						"value": "keep-alive",
+						"name": "connection",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "ssid",
+							"value": "MayAndGao",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "05032004",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://192.168.4.1/connect-wifi/",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"4",
+						"1"
+					],
+					"path": [
+						"connect-wifi",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /mac/",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.4.1/mac/",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"4",
+						"1"
+					],
+					"path": [
+						"mac",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

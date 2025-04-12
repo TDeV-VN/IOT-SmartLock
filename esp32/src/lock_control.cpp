@@ -1,9 +1,9 @@
 #include <Keypad.h>
 #include <LiquidCrystal.h>
-#include <Preferences.h>  
-#include <gpo_config.h>
 
-Preferences preferences;
+#include <gpo_config.h>
+#include "preference.h"  
+
 // int incorrectAttempts; // Số lần nhập sai
 String enteredPassword = ""; // Mã khóa nhập vào
 

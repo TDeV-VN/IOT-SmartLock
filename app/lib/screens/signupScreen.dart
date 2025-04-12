@@ -66,7 +66,7 @@ class _SignUpState extends State<SignUp> {
             Container(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              color: constants.blue,
+              color: constants.primary1,
             ),
             TopSignup(onBackPressed: _goBackToSignin), // Truyền callback
             Positioned(
@@ -86,16 +86,18 @@ class _SignUpState extends State<SignUp> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 250,
+                        height: 200,
                         width: MediaQuery.of(context).size.width * 0.8,
                         margin: EdgeInsets.only(
+                          top: 20,
+                          bottom: 20,
                           left: MediaQuery.of(context).size.width * 0.09,
                         ),
-                        child: Image.asset("assets/images/login.png"),
+                        child: Image.asset("assets/images/android_logo2.png"),
                       ),
                       InputField(
-                        headerText: "Username",
-                        hintTexti: "Username",
+                        headerText: "Tên người dùng",
+                        hintTexti: "SLock Team",
                         controller: _usernameController,
                       ),
                       const SizedBox(height: 10),
@@ -106,8 +108,8 @@ class _SignUpState extends State<SignUp> {
                       ),
                       const SizedBox(height: 10),
                       InputFieldPassword(
-                        headerText: "Password",
-                        hintTexti: "At least 8 Characters",
+                        headerText: "Mật khẩu",
+                        hintTexti: "Tối thiểu 8 ký tự",
                         controller: _passwordController,
                       ),
                       if (_errorMessage != null)
@@ -121,61 +123,27 @@ class _SignUpState extends State<SignUp> {
                             style: const TextStyle(color: Colors.red),
                           ),
                         ),
-                      CheckerBox(),
                       const SizedBox(height: 20),
                       InkWell(
                         onTap: _signUp,
                         child: Container(
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height * 0.07,
-                          margin: const EdgeInsets.only(left: 20, right: 20),
+                          margin: const EdgeInsets.only(top:20, left: 20, right: 20),
                           decoration: BoxDecoration(
-                            color: constants.blue,
+                            color: constants.primary1,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(10)),
                           ),
                           child: Center(
                             child: Text(
-                              "Sign up",
+                              "Đăng ký",
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w500,
                                 color: constants.whiteshade,
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(
-                          left: MediaQuery.of(context).size.width * 0.18,
-                          top: MediaQuery.of(context).size.height * 0.08,
-                        ),
-                        child: Text.rich(
-                          TextSpan(
-                            text: "I already Have an account ",
-                            style: TextStyle(
-                              color: constants.grayshade.withOpacity(0.8),
-                              fontSize: 16,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: "Sign In",
-                                style: TextStyle(
-                                  color: constants.blue,
-                                  fontSize: 16,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const Signin(),
-                                      ),
-                                    );
-                                  },
-                              ),
-                            ],
                           ),
                         ),
                       ),
@@ -186,59 +154,6 @@ class _SignUpState extends State<SignUp> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CheckerBox extends StatefulWidget {
-  CheckerBox({Key? key}) : super(key: key);
-
-  @override
-  State<CheckerBox> createState() => _CheckerBoxState();
-}
-
-class _CheckerBoxState extends State<CheckerBox> {
-  bool isCheck = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: isCheck,
-            checkColor: constants.whiteshade,
-            activeColor: constants.blue,
-            onChanged: (val) {
-              setState(() {
-                isCheck = val!;
-              });
-            },
-          ),
-          Text.rich(
-            TextSpan(
-              text: "I agree with ",
-              style: TextStyle(
-                color: constants.grayshade.withOpacity(0.8),
-                fontSize: 16,
-              ),
-              children: [
-                TextSpan(
-                  text: "Terms ",
-                  style: TextStyle(color: constants.blue, fontSize: 16),
-                ),
-                const TextSpan(text: "and "),
-                TextSpan(
-                  text: "Policy",
-                  style: TextStyle(color: constants.blue, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -267,7 +182,7 @@ class InputField extends StatelessWidget {
             headerText,
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -324,7 +239,7 @@ class _InputFieldPasswordState extends State<InputFieldPassword> {
             widget.headerText,
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -370,7 +285,7 @@ class TopSignup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 15, left: 20),
+      margin: const EdgeInsets.only(top: 30, left: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,15 +295,15 @@ class TopSignup extends StatelessWidget {
             child: Icon(
               Icons.arrow_back_sharp,
               color: constants.whiteshade,
-              size: 40,
+              size: 28,
             ),
           ),
           const SizedBox(width: 15),
           Text(
-            "Sign Up",
+            "Đăng nhập",
             style: TextStyle(
               color: constants.whiteshade,
-              fontSize: 25,
+              fontSize: 20,
             ),
           ),
         ],

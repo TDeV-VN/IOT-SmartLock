@@ -14,6 +14,8 @@ Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CO
 // Khai báo LCD 16x2
 LiquidCrystal lcd(GPO_CONFIG::RS, GPO_CONFIG::E, GPO_CONFIG::D4, GPO_CONFIG::D5, GPO_CONFIG::D6, GPO_CONFIG::D7);
 
+int incorrectAttempts = 0;  // Biến lưu số lần sai
+
 void setup() {
   Serial.begin(115200);
 
@@ -31,7 +33,7 @@ void setup() {
   // Cấu hình buzzer
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
-  // Thêm dòng này để khởi động WiFi Server:
+  // Khởi động WiFi Server:
   setupWifiServer();
 }
 
@@ -41,6 +43,9 @@ void loop() {
 
   char key = keypad.getKey();
   if (key == '*') {
-    handleLockControl(keypad, lcd);  // Gọi hàm xử lý mã khóa
+    // Truyền giá trị incorrectAttempts vào hàm và nhận giá trị trả về
+    Serial.println("Số lần sai sau khi nhập mã: " + String(incorrectAttempts));
+    incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);  
+    Serial.println("Số lần sai sau khi nhập mã 1: " + String(incorrectAttempts));  // In số lần sai sau khi nhập mã
   }
 }

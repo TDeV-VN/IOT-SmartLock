@@ -26,10 +26,16 @@ class _SignUpState extends State<SignUp> {
     }
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Tạo tài khoản với email và mật khẩu
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Cập nhật tên người dùng
+      await userCredential.user?.updateDisplayName(_usernameController.text.trim());
+
+      // Điều hướng đến màn hình chính
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       setState(() {

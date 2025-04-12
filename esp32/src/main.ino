@@ -5,6 +5,8 @@
 #include "firebase_handler.h"
 
 String lockId = "lock_id1";
+String uuid = "uuid1";
+
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
@@ -20,13 +22,13 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("ESP32 Keypad Test");
 
-  // Cấu hình relay
+  // Cấu hình relay và buzzer
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
-  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Ban đầu tắt relay (nếu relay dùng LOW level trigger)
-  
-  // Cấu hình buzzer
+  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
+
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
+  // Kết nối WiFi
   WiFi.begin("Wokwi-GUEST", "", 6);
   Serial.print("Dang ket noi wifi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -34,7 +36,8 @@ void setup() {
     delay(500);
   }
   Serial.println("\nWifi da ket noi!");
-  
+
+  // Khởi động Firebase
   firebaseSetup();
 }
 
@@ -44,11 +47,11 @@ void loop() {
   if (key) {
     Serial.print("Phim nhan: ");
     Serial.println(key);
-    
+
     lcd.setCursor(0, 1);
     lcd.print("Phim: ");
     lcd.print(key);
-    lcd.print("    "); // Xóa kí tự cũ
+    lcd.print("    "); // Xóa kí tự cũ nếu còn
 
     // Buzzer
     digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
@@ -56,12 +59,12 @@ void loop() {
     digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
 
     if (key == '#') {
-      // Mở khóa
+      // Mở khóa 5s
       Serial.println("Mo khoa trong 5s...");
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Mo khoa...");
-      
+
       digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
       delay(5000);
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
@@ -70,6 +73,9 @@ void loop() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Khoa dong!");
+
+      // Ghi lịch sử mở khóa
+      putOpenHistory(uuid, lockId, "mã khóa", "Khóa");
     }
 
     if (key == 'B') {
@@ -78,8 +84,12 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Khoa dong!");
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
+
+      // Ghi cảnh báo nếu đã khóa mà vẫn bấm B
+      putWarningHistory(uuid, lockId, "Nhấn khóa khi đã đóng");
     }
 
+    // Hiển thị lại màn hình chính
     if (key == '#') {
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -87,6 +97,6 @@ void loop() {
     }
   }
 
-  // Firebase loop không chặn chương trình
+  // Xử lý Firebase định kỳ
   firebaseLoop(lockId);
 }

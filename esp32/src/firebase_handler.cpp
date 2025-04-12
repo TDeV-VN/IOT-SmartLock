@@ -1,6 +1,7 @@
-#include <FirebaseESP32.h>
+#include "firebase_handler.h"
 #include <Preferences.h>
 #include "gpo_config.h"
+#include <time.h>
 
 #define FIREBASE_HOST "https://slock-bb631-default-rtdb.firebaseio.com/"
 #define FIREBASE_AUTH "AIzaSyBUmpTr3r3gfn7erG-KYPMoUXXbseVPOSs"
@@ -22,18 +23,19 @@ void firebaseSetup() {
   currentPinCode = preferences.getString("pinCode", "");
   Serial.printf("PIN code hiện tại từ NVS: %s\n", currentPinCode.c_str());
 
+  configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+
   Serial.println("Firebase đã khởi động!");
 }
 
 void firebaseLoop(const String& lockId) {
   static unsigned long lastRun = 0;
-  unsigned long interval = 5000; // 5 giây
+  unsigned long interval = 5000;
   if (millis() - lastRun < interval) return;
   lastRun = millis();
 
   String basePath = "/lock/" + lockId;
 
-  // 1. Kiểm tra locking_status
   if (Firebase.getBool(fbdo, basePath + "/locking_status")) {
     bool locking = fbdo.boolData();
     Serial.printf("[%s] locking_status = %s\n", lockId.c_str(), locking ? "true" : "false");
@@ -41,10 +43,9 @@ void firebaseLoop(const String& lockId) {
     if (!locking && !isUnlocking) {
       isUnlocking = true;
 
-      // Mở khóa
       Serial.println("Mở khóa (tắt relay) trong 5s...");
       digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
-      delay(5000); // Có thể dùng millis nếu muốn non-blocking hoàn toàn
+      delay(5000);
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
       Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
 
@@ -60,7 +61,6 @@ void firebaseLoop(const String& lockId) {
     Serial.printf("Lỗi khi đọc locking_status: %s\n", fbdo.errorReason().c_str());
   }
 
-  // 2. Kiểm tra và cập nhật pin_code nếu thay đổi
   if (Firebase.getString(fbdo, basePath + "/pin_code")) {
     String newPin = fbdo.stringData();
     if (newPin != currentPinCode) {
@@ -71,5 +71,54 @@ void firebaseLoop(const String& lockId) {
     }
   } else {
     Serial.printf("Lỗi khi đọc pin_code: %s\n", fbdo.errorReason().c_str());
+  }
+}
+
+void putOpenHistory(const String& uuid, const String& lockId, const String& method, const String& device) {
+  String historyPath = "/lock/" + lockId + "/open_history";
+  String notiPath = "/account/" + uuid + "/lock";
+  unsigned long timestamp = time(nullptr);
+
+  FirebaseJson historyJson;
+  historyJson.set("device", device);
+  historyJson.set("method", method);
+  historyJson.set("time", String(timestamp));
+
+  if (Firebase.pushJSON(fbdo, historyPath, historyJson)) {
+    Serial.println("Đã ghi open_history.");
+  } else {
+    Serial.printf("Lỗi ghi open_history: %s\n", fbdo.errorReason().c_str());
+  }
+
+  FirebaseJson notiJson;
+  notiJson.set("message", method);
+  notiJson.set("time", String(timestamp));
+
+  for (int i = 0; ; i++) {
+    String itemPath = notiPath + "/" + String(i);
+    if (!Firebase.getString(fbdo, itemPath + "/id")) break;
+    if (fbdo.stringData() == lockId) {
+      if (Firebase.setJSON(fbdo, itemPath + "/latest_notification", notiJson)) {
+        Serial.println("Đã cập nhật latest_notification.");
+      } else {
+        Serial.printf("Lỗi khi cập nhật notification: %s\n", fbdo.errorReason().c_str());
+      }
+      break;
+    }
+  }
+}
+
+void putWarningHistory(const String& uuid, const String& lockId, const String& message) {
+  String warningPath = "/lock/" + lockId + "/warning_history";
+  unsigned long timestamp = time(nullptr);
+
+  FirebaseJson warningJson;
+  warningJson.set("message", message);
+  warningJson.set("time", String(timestamp));
+
+  if (Firebase.pushJSON(fbdo, warningPath, warningJson)) {
+    Serial.println("Đã ghi warning_history.");
+  } else {
+    Serial.printf("Lỗi ghi warning_history: %s\n", fbdo.errorReason().c_str());
   }
 }

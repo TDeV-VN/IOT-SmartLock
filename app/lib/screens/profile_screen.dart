@@ -3,12 +3,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/widgets/custom_appbar.dart';
 import 'package:app/constant.dart' as constants;
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  User? user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = FirebaseAuth.instance.currentUser;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(  
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,6 +60,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProfileHeader() {
+    final displayName = user?.displayName ?? 'Không rõ tên';
+    final email = user?.email ?? 'Không rõ email';
+
     return Row(
       children: [
         CircleAvatar(
@@ -63,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Nguyễn Văn A',
+              displayName,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -71,7 +87,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              'nguyenvana@email.com',
+              email,
               style: TextStyle(
                 color: Colors.grey[600],
               ),

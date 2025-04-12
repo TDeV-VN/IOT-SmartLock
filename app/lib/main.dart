@@ -15,9 +15,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Thiết lập ghi nhớ phiên đăng nhập ở local
-  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-
   runApp(MyApp());
 }
 

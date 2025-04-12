@@ -7,8 +7,14 @@ Preferences preferences_lockcontrol;
 // int incorrectAttempts; // Số lần nhập sai
 String enteredPassword = ""; // Mã khóa nhập vào
 
-// Mã khóa mặc định
-const String correctPassword = "1111";
+// Mã khóa đúng
+String getPinCodeFromNVS() {
+    Preferences preferences;
+    preferences.begin("config", true); // Mở namespace "config" ở chế độ chỉ đọc
+    String pinCode = preferences.getString("pinCode", "null"); // Lấy mã khóa, mặc định là "1234" nếu không tồn tại
+    preferences.end();
+    return pinCode;
+}
 
 // Cấu hình timeout
 const unsigned long timeoutDuration = 60000; // 1 phút (60,000 ms)
@@ -70,7 +76,7 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
             }
 
             if (enteredPassword.length() == 4) {
-                if (enteredPassword == correctPassword) {
+                if (enteredPassword == getPinCodeFromNVS()) {
                     digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
                     lcd.clear();
                     lcd.setCursor(0, 0);

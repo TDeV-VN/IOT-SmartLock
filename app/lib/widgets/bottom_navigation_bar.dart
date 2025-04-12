@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/constant.dart' as constants; // Thêm alias 'constants'
 
 class NavBarItem {
   final IconData icon;
@@ -11,24 +12,18 @@ class CustomBottomNavBar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
   final List<NavBarItem> items;
-  
-  final Color backgroundColor;
-  final Color navBarColor;
-  final Color selectedItemColor;
-  final Color unselectedItemColor;
-  final double iconSize;
-  final double height;
+
+  final Color backgroundColor = constants.whiteshade;
+  final Color navBarColor = constants.primary1;
+  final Color selectedItemColor = Colors.white;
+  final Color unselectedItemColor = Colors.grey;
+  final double iconSize = 20.0;
+  final double height = 70.0;
 
   CustomBottomNavBar({
     required this.selectedIndex,
     required this.onItemSelected,
-    required this.items,
-    this.backgroundColor = Colors.white, 
-    this.navBarColor = Colors.black,     
-    this.selectedItemColor = Colors.white,
-    this.unselectedItemColor = Colors.grey,      
-    this.iconSize = 20.0,
-    this.height = 60.0,
+    required this.items
   });
 
   @override
@@ -116,6 +111,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        margin: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue.withOpacity(0.3) : Colors.transparent,
           borderRadius: BorderRadius.circular(15),

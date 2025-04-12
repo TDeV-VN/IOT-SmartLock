@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -34,11 +35,25 @@ class ProfileScreen extends StatelessWidget {
             _buildSectionTitle('Khác'),
             _buildMenuOption(Icons.help, 'Trợ giúp'),
             _buildMenuOption(Icons.info, 'Về ứng dụng'),
-            _buildMenuOption(Icons.logout, 'Đăng xuất', isLogout: true),
+            _buildMenuOption(Icons.logout, 'Đăng xuất', isLogout: true, onTap: () => _signOut(context)),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đăng xuất thất bại: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildProfileHeader() {
@@ -107,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuOption(IconData icon, String title, {bool isLogout = false}) {
+  Widget _buildMenuOption(IconData icon, String title, {bool isLogout = false, VoidCallback? onTap}) {
     return ListTile(
       leading: Container(
         padding: EdgeInsets.all(8),
@@ -127,10 +142,10 @@ class ProfileScreen extends StatelessWidget {
           fontWeight: isLogout ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      trailing: isLogout 
-          ? null 
+      trailing: isLogout
+          ? null
           : Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 }

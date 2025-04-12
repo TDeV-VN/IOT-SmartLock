@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app/constant.dart'
     as constants; // Sử dụng alias để tránh xung đột
@@ -47,20 +46,6 @@ class _HomeScreenState extends State<HomeScreen>
     _pageController.dispose();
     _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _signOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đăng xuất thất bại: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -146,7 +131,8 @@ class _HomeScreenState extends State<HomeScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
-                onPressed: _signOut,
+                onPressed: () {
+                },
               ),
             ],
           ),

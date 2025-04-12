@@ -51,9 +51,8 @@ class _SigninState extends State<Signin> {
             Container(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              color: constants.blue, // Sử dụng constants.blue
+              color: constants.primary1,
             ),
-            TopSginin(),
             Positioned(
               top: MediaQuery.of(context).size.height * 0.10,
               child: Container(
@@ -71,12 +70,13 @@ class _SigninState extends State<Signin> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 250,
+                        height: 200,
                         width: MediaQuery.of(context).size.width * 0.8,
                         margin: EdgeInsets.only(
+                          top: 20,
                           left: MediaQuery.of(context).size.width * 0.09,
                         ),
-                        child: Image.asset("assets/images/login.png"),
+                        child: Image.asset("assets/images/android_logo2.png"),
                       ),
                       InputField(
                         headerText: "Email",
@@ -85,8 +85,8 @@ class _SigninState extends State<Signin> {
                       ),
                       const SizedBox(height: 10),
                       InputFieldPassword(
-                        headerText: "Password",
-                        hintTexti: "At least 8 Characters",
+                        headerText: "Mật khẩu",
+                        hintTexti: "Tối thiểu 8 ký tự",
                         controller: _passwordController,
                       ),
                       if (_errorMessage != null)
@@ -101,15 +101,14 @@ class _SigninState extends State<Signin> {
                           ),
                         ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          CheckerBox(),
                           Container(
-                            margin: const EdgeInsets.only(right: 20),
+                            margin: const EdgeInsets.only(top:10, right: 20,),
                             child: InkWell(
                               onTap: () {},
                               child: Text(
-                                "Forgot Password?",
+                                "Quên mật khẩu?",
                                 style: TextStyle(
                                   color: constants.blue.withOpacity(
                                       0.7), // Sử dụng constants.blue
@@ -128,15 +127,15 @@ class _SigninState extends State<Signin> {
                           height: MediaQuery.of(context).size.height * 0.07,
                           margin: const EdgeInsets.only(left: 20, right: 20),
                           decoration: BoxDecoration(
-                            color: constants.blue, // Sử dụng constants.blue
+                            color: constants.primary1, // Sử dụng constants.blue
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(10)),
                           ),
                           child: Center(
                             child: Text(
-                              "Sign in",
+                              "Đăng nhập",
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w500,
                                 color: constants
                                     .whiteshade, // Sử dụng constants.whiteshade
@@ -152,7 +151,7 @@ class _SigninState extends State<Signin> {
                         ),
                         child: Text.rich(
                           TextSpan(
-                            text: "Don't already Have an account? ",
+                            text: "Bạn chưa có tài khoản? ",
                             style: TextStyle(
                               color: constants.grayshade.withOpacity(
                                   0.8), // Sử dụng constants.grayshade
@@ -160,7 +159,7 @@ class _SigninState extends State<Signin> {
                             ),
                             children: [
                               TextSpan(
-                                text: "Sign Up",
+                                text: "Đăng ký",
                                 style: TextStyle(
                                   color:
                                       constants.blue, // Sử dụng constants.blue
@@ -192,49 +191,6 @@ class _SigninState extends State<Signin> {
   }
 }
 
-class CheckerBox extends StatefulWidget {
-  CheckerBox({Key? key}) : super(key: key);
-
-  @override
-  State<CheckerBox> createState() => _CheckerBoxState();
-}
-
-class _CheckerBoxState extends State<CheckerBox> {
-  bool isCheck = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: isCheck,
-            checkColor: constants.whiteshade, // Sử dụng constants.whiteshade
-            activeColor: constants.blue, // Sử dụng constants.blue
-            onChanged: (val) {
-              setState(() {
-                isCheck = val!;
-              });
-            },
-          ),
-          Text.rich(
-            TextSpan(
-              text: "Remember me",
-              style: TextStyle(
-                color: constants.grayshade
-                    .withOpacity(0.8), // Sử dụng constants.grayshade
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class InputField extends StatelessWidget {
   final String headerText;
   final String hintTexti;
@@ -258,7 +214,7 @@ class InputField extends StatelessWidget {
             "Email",
             style: TextStyle(
               color: Colors.black,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -316,7 +272,7 @@ class _InputFieldPasswordState extends State<InputFieldPassword> {
             widget.headerText,
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -351,36 +307,6 @@ class _InputFieldPasswordState extends State<InputFieldPassword> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class TopSginin extends StatelessWidget {
-  TopSginin({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 15, left: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.arrow_back_sharp,
-            color: constants.whiteshade, // Sử dụng constants.whiteshade
-            size: 40,
-          ),
-          const SizedBox(width: 15),
-          Text(
-            "Sign In",
-            style: TextStyle(
-              color: constants.whiteshade, // Sử dụng constants.whiteshade
-              fontSize: 25,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

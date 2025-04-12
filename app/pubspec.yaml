@@ -28,7 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  firebase_core: ^2.16.0
+  firebase_core: ^2.32.0
   intl: ^0.18.0 # thư viện hỗ trợ định dạng ngày tháng
   flutter:
     sdk: flutter
@@ -39,6 +39,9 @@ dependencies:
   animated_text_kit: ^4.2.3
   flutter_native_splash: ^2.4.5
   firebase_database: ^10.5.7
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^19.0.0
+  cloud_firestore: ^4.17.5
 
 dev_dependencies:
   flutter_test:
@@ -51,7 +54,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
 
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/image/app_icon.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -67,6 +75,9 @@ flutter:
     - assets/images/icons8-secure-50.png
     - assets/images/logo.png
     - assets/images/login.png
+
+
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
@@ -92,3 +103,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+

@@ -1,0 +1,2 @@
+C:/Users/pc/Desktop/cloneIOT/IOT-SmartLock/app/android/app/.cxx/Debug/d3a16p3f/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/pc/Desktop/cloneIOT/IOT-SmartLock/app/android/app/.cxx/Debug/d3a16p3f/arm64-v8a/CMakeFiles/rebuild_cache.dir

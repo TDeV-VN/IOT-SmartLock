@@ -1,0 +1,1 @@
+C:\Users\pc\Desktop\cloneIOT\IOT-SmartLock\app\build\app\intermediates\cxx\Debug\d3a16p3f\obj\arm64-v8a

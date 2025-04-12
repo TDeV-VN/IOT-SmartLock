@@ -77,7 +77,7 @@ jobs:
             -d '{
               "topic": "NewFirmware",
               "title": "Cập nhật firmware",
-              "body": "Đã có bản cập nhật firmware ${version} cho khóa cửa"
+              "body": "Đã có bản cập nhật firmware ${{ env.version }} cho khóa cửa"
             }'
         env:
           version: ${GITHUB_REF#refs/tags/}

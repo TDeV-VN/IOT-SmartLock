@@ -4,7 +4,7 @@ import 'package:app/constant.dart'
 import 'package:app/widgets/bottom_navigation_bar.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
-
+import 'package:app/widgets/custom_appbar.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key); // Thêm const constructor
 
@@ -99,22 +99,7 @@ class _HomeScreenState extends State<HomeScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Daily',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: constants.grayshade, // Sử dụng màu từ constants
-                    ),
-                  ),
-                  Text(
-                    'Smart Lock',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: constants.grayshade,
-                    ),
-                  ),
+                  CustomAppBar(subtitle: 'Cho cuộc sống hiện đại'),
                 ],
               ),
               ElevatedButton.icon(

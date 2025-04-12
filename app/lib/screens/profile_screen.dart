@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app/widgets/custom_appbar.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -11,14 +12,7 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20),
-            Text(
-              'Tài Khoản',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F0F0F),
-              ),
-            ),
+            CustomAppBar(subtitle: 'Quản lý tài khoản'),
             SizedBox(height: 20),
             _buildProfileHeader(),
             SizedBox(height: 30),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/widgets/custom_appbar.dart';
 
 class DevicesScreen extends StatefulWidget {
   @override
@@ -17,14 +18,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20),
-            Text(
-              'Thiết Bị Của Tôi',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F0F0F),
-              ),
-            ),
+            CustomAppBar(subtitle: 'Quản lý thiết bị'),
             SizedBox(height: 20),
             _buildSearchBar(),
             SizedBox(height: 20),

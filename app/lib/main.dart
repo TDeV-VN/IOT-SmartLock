@@ -1,3 +1,5 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'screens/device_manager.dart';
 import 'screens/home_screen.dart';
 import 'screens/open_history.dart';
@@ -11,15 +13,22 @@ import 'services/fcm_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Handling a background message: ${message.messageId}");
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   final fcmService = FCMService(navigatorKey: navigatorKey);
-  await fcmService.init();
+  await fcmService.initialize();
 
   runApp(MyApp());
 }

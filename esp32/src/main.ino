@@ -11,7 +11,10 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <NVS.h>
+#include <FirebaseESP32.h>
 
+FirebaseData firebaseData;
+#define FIREBASE_HOST "slock-bb631-default-rtdb.firebaseio.com"
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
@@ -120,7 +123,6 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
 }
 
 
-// Hàm reset ESP32 và xóa dữ liệu liên quan đến lock_id
 void resetAndClearData(const String& lock_id) {
   // 1. Xóa dữ liệu liên quan đến lock_id trong Firebase Realtime Database
   String path = "/lock/" + lock_id;  // Đường dẫn đến dữ liệu lock_id

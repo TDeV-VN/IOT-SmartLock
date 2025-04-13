@@ -4,21 +4,28 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Thư viện để định dạng ngày tháng
 
 class WarningHistoryScreen extends StatefulWidget {
-  final String lockId;
-
-  WarningHistoryScreen({required this.lockId});
+  const WarningHistoryScreen({super.key});
 
   @override
   _WarningHistoryScreenState createState() => _WarningHistoryScreenState();
 }
 
 class _WarningHistoryScreenState extends State<WarningHistoryScreen> {
-  late final DatabaseReference _ref;
+  late DatabaseReference _ref;
+  bool _initialized = false; // Để đảm bảo chỉ khởi tạo 1 lần
 
   @override
-  void initState() {
-    super.initState();
-    _ref = FirebaseDatabase.instance.ref('lock/${widget.lockId}/warning_history');
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final String? lockId = ModalRoute.of(context)?.settings.arguments as String?;
+      if (lockId != null) {
+        _ref = FirebaseDatabase.instance.ref('lock/$lockId/warning_history');
+        _initialized = true;
+      } else {
+        throw Exception('lockId không được cung cấp qua arguments');
+      }
+    }
   }
 
   String formatTimestamp(String timestamp) {
@@ -29,7 +36,7 @@ class _WarningHistoryScreenState extends State<WarningHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cảnh báo')),
+      appBar: AppBar(title: const Text('Cảnh báo')),
       body: StreamBuilder<DatabaseEvent>(
         stream: _ref.onValue,
         builder: (context, snapshot) {
@@ -54,7 +61,7 @@ class _WarningHistoryScreenState extends State<WarningHistoryScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text("Lỗi: ${snapshot.error}"));
           }
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );

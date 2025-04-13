@@ -4,15 +4,11 @@ import 'open_history.dart';
 import 'change_pin_code.dart';
 
 class DeviceManagerScreen extends StatelessWidget {
-  final TextEditingController deviceIdController = TextEditingController();
-  final String lockId;
-
-  DeviceManagerScreen({super.key, required this.lockId}) {
-    deviceIdController.text = lockId;
-  }
+  DeviceManagerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final String? lockId = ModalRoute.of(context)?.settings.arguments as String?;
     return Scaffold(
       appBar: AppBar(
         title: Text('Test quản lý thiết bị'),
@@ -25,16 +21,17 @@ class DeviceManagerScreen extends StatelessWidget {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                showChangePinCodeBottomSheet(context, lockId);
+                showChangePinCodeBottomSheet(context, lockId!);
               },
               child: Text('Đổi mã khóa'),
             ),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushNamed(
                   context,
-                  MaterialPageRoute(builder: (context) => WarningHistoryScreen(lockId: lockId)),
+                  '/warning_history',
+                  arguments: lockId,
                 );
               },
               child: Text('Xem lịch sử cảnh báo'),
@@ -42,9 +39,10 @@ class DeviceManagerScreen extends StatelessWidget {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushNamed(
                   context,
-                  MaterialPageRoute(builder: (context) => OpenHistoryScreen(lockId: lockId)),
+                  '/open_history',
+                  arguments: lockId,
                 );
               },
               child: Text('Xem lịch sử mở khoá'),

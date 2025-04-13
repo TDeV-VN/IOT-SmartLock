@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'screens/device_manager.dart';
 import 'screens/home_screen.dart';
 import 'screens/open_history.dart';
@@ -34,14 +36,28 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: DeviceManagerScreen(lockId: 'lock_id1'),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.active) {
+            final user = snapshot.data;
+            if (user == null) {
+              return Signin(); // Chuyển đến màn hình đăng nhập nếu chưa đăng nhập
+            }
+            return HomeScreen(); // Chuyển đến màn hình chính nếu đã đăng nhập
+          }
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        },
+      ),
       routes: {
         '/home': (context) => HomeScreen(),
         '/signup': (context) => SignUp(),
         '/login': (context) => Signin(),
-        '/open_history': (context) => OpenHistoryScreen(lockId: 'lock_id1'),
-        '/warning_history': (context) => WarningHistoryScreen(lockId: 'lock_id1'),
-        '/device_manager': (context) => DeviceManagerScreen(lockId: 'lock_id1'),
+        '/open_history': (context) => OpenHistoryScreen(),
+        '/warning_history': (context) => WarningHistoryScreen(),
+        '/device_manager': (context) => DeviceManagerScreen(),
       },
     );
   }

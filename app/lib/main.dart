@@ -34,14 +34,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      home: DeviceManagerScreen(lockId: 'lock_id1'),
       routes: {
         '/home': (context) => HomeScreen(),
         '/signup': (context) => SignUp(),
         '/login': (context) => Signin(),
-        '/open_history': (context) => OpenHistoryScreen(),
-        '/warning_history': (context) => WarningHistoryScreen(),
-        '/device_manager': (context) => DeviceManagerScreen(),
+        '/open_history': (context) => OpenHistoryScreen(lockId: 'lock_id1'),
+        '/warning_history': (context) => WarningHistoryScreen(lockId: 'lock_id1'),
+        '/device_manager': (context) => DeviceManagerScreen(lockId: 'lock_id1'),
       },
     );
   }

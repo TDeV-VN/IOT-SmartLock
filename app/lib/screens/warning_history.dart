@@ -4,17 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Thư viện để định dạng ngày tháng
 
 class WarningHistoryScreen extends StatefulWidget {
+  final String lockId;
+
+  WarningHistoryScreen({required this.lockId});
+
   @override
   _WarningHistoryScreenState createState() => _WarningHistoryScreenState();
 }
 
 class _WarningHistoryScreenState extends State<WarningHistoryScreen> {
-  final DatabaseReference _ref =
-  FirebaseDatabase.instance.ref('lock/lock_id1/warning_history');
+  late final DatabaseReference _ref;
+
+  @override
+  void initState() {
+    super.initState();
+    _ref = FirebaseDatabase.instance.ref('lock/${widget.lockId}/warning_history');
+  }
 
   String formatTimestamp(String timestamp) {
-    final dateTime =
-    DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000);
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000);
     return DateFormat('HH:mm:ss dd/MM/yyyy').format(dateTime);
   }
 
@@ -26,15 +34,20 @@ class _WarningHistoryScreenState extends State<WarningHistoryScreen> {
         stream: _ref.onValue,
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-            List<dynamic> warnings =
-            snapshot.data!.snapshot.value as List<dynamic>;
+            Map<Object?, Object?> warningsMap =
+            snapshot.data!.snapshot.value as Map<Object?, Object?>;
+
+            List<Map<String, dynamic>> warnings = warningsMap.values
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
+
             return ListView.builder(
               itemCount: warnings.length,
               itemBuilder: (context, index) {
                 var entry = warnings[index];
                 return ListTile(
-                  title: Text(entry['message']),
-                  subtitle: Text(formatTimestamp(entry['time'])),
+                  title: Text(entry['message'] ?? 'Không có nội dung'),
+                  subtitle: Text(formatTimestamp(entry['time'].toString())),
                 );
               },
             );

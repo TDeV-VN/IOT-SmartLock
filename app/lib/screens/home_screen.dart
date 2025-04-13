@@ -1,36 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:app/constant.dart'
-    as constants; // Sử dụng alias để tránh xung đột
+import 'package:app/constant.dart' as constants; 
 import 'package:app/widgets/bottom_navigation_bar.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
 import 'package:app/widgets/custom_appbar.dart';
+import 'package:app/services/fcm_service.dart'; 
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key); // Thêm const constructor
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late PageController _pageController;
   late TabController _tabController;
   late List<Widget> _screens;
+  late FCMService _fcmService;
+    // Thêm navigatorKey cho FCMService
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    
+    _fcmService = FCMService(navigatorKey: _navigatorKey); // Khởi tạo FCMService
+    
     _screens = [
       _buildHomeContent(),
-      DevicesScreen(),
+      DevicesScreen(fcmService: _fcmService), // Truyền FCMService vào DevicesScreen
       ProfileScreen(),
     ];
 
     _pageController = PageController(initialPage: _selectedIndex);
-    _tabController =
-        TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -105,7 +110,6 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
           const SizedBox(height: 20),
-
           const SizedBox(height: 20),
         ],
       ),

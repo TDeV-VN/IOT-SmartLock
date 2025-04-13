@@ -1,20 +1,21 @@
+
 #include <Arduino.h>
 #include <Keypad.h>
 #include <LiquidCrystal.h>
-#include <gpo_config.h>
-#include "lock_control.h" 
 #include <WiFi.h>
+<<<<<<< HEAD
 #include "firebase_handler.h"
 #include <HTTPClient.h>          // Thêm thư viện HTTPClient
 #include <ArduinoJson.h>         // Thêm thư viện ArduinoJson
+=======
+#include <HTTPClient.h>
+#include <Update.h>
+#include <gpo_config.h>
+#include "lock_control.h"
+#include "wifi_connection.h"
+#include <ArduinoJson.h>
+>>>>>>> 5f106347827ed02265842d8f788d9d51f9928bcb
 
-#define FIRMWARE_VERSION "1.0.2"
-
-// Khai báo các hàm từ wifi_connection.cpp
-void setupWifiServer();
-void handleWifiClient();
-
-String lockId = "lock_id1";
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
 
@@ -64,13 +65,11 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("* to enter code");
 
-  // Cấu hình relay
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
-  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // relay OFF
-
-  // Cấu hình buzzer
+  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);  // relay OFF
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
+<<<<<<< HEAD
   // Kết nối wifi
   WiFi.begin("Wokwi-GUEST", "", 6);
   Serial.print("Dang ket noi wifi");
@@ -88,17 +87,22 @@ void setup() {
     "Khởi động hệ thống",
     "Khóa cửa " + lockId + " đã khởi động. Phiên bản " + FIRMWARE_VERSION
   );
+=======
+  // Khởi động Wi-Fi Server:
+  startServer();  // Khởi động điểm truy cập và WebServer
+>>>>>>> 5f106347827ed02265842d8f788d9d51f9928bcb
 }
 
 void loop() {
-  // Thêm dòng này để xử lý client web server:
-  // handleWifiClient();
+  // Xử lý client web server
+  handleWifiClient();
 
   char key = keypad.getKey();
   if (key == '*') {
     // Truyền giá trị incorrectAttempts vào hàm và nhận giá trị trả về
-    Serial.println("Số lần sai sau khi nhập mã: " + String(incorrectAttempts));
+    Serial.println("Số lần sai trước khi nhập mã: " + String(incorrectAttempts));
     incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);  
+<<<<<<< HEAD
     Serial.println("Số lần sai sau khi nhập mã 1: " + String(incorrectAttempts));
     
     // ======= GỬI THÔNG BÁO KHI NHẬP SAI ======= //
@@ -109,8 +113,77 @@ void loop() {
         "Khóa " + lockId + " nhập sai mã " + String(incorrectAttempts) + " lần"
       );
     }
+=======
+    Serial.println("Số lần sai sau khi nhập mã: " + String(incorrectAttempts));  // In số lần sai sau khi nhập mã
+  }
+  //check update
+  // String currentVersion = "1.0.0";  // Thay thế bằng phiên bản hiện tại của firmware
+  // bool success = checkAndUpdateFirmware(currentVersion);
+  // if (success) {
+  //   Serial.println("Firmware update successful.");
+  // } else {
+  //   Serial.println("Firmware update failed.");
+  // }
+
+}
+
+
+
+bool checkAndUpdateFirmware(const String &currentVersion) {
+  HTTPClient http;
+  String firmwareUrl = "https://raw.githubusercontent.com/TDeV-VN/IOT-SmartLock-Firmware/firmware/latest.json";
+
+  // Gửi yêu cầu HTTP GET để tải file JSON
+  http.begin(firmwareUrl);
+  int httpCode = http.GET();
+
+  if (httpCode == HTTP_CODE_OK) {
+    String payload = http.getString();
+    Serial.println("Received data: " + payload);
+
+    // Phân tích dữ liệu JSON để lấy version và URL firmware mới
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, payload);
+    String latestVersion = doc["version"];
+    String firmwareDownloadUrl = doc["url"];
+
+    Serial.println("Current Version: " + currentVersion);
+    Serial.println("Latest Version: " + latestVersion);
+
+    if (latestVersion != currentVersion) {
+      Serial.println("Firmware update available. Starting download...");
+      
+      // Tải firmware mới
+      http.begin(firmwareDownloadUrl);
+      int firmwareCode = http.GET();
+      if (firmwareCode == HTTP_CODE_OK) {
+        WiFiClient *client = http.getStreamPtr();
+        if (Update.begin(client->available())) {
+          // Tiến hành cập nhật firmware
+          size_t written = Update.writeStream(*client);
+          if (written == client->available()) {
+            if (Update.end(true)) {
+              Serial.println("Firmware updated successfully.");
+              return true;
+            } else {
+              Serial.println("Failed to commit firmware update.");
+            }
+          } else {
+            Serial.println("Failed to write firmware data.");
+          }
+        }
+      } else {
+        Serial.println("Failed to download firmware.");
+      }
+    } else {
+      Serial.println("No firmware update needed.");
+    }
+  } else {
+    Serial.println("Failed to fetch firmware information.");
+>>>>>>> 5f106347827ed02265842d8f788d9d51f9928bcb
   }
 
-  // Firebase loop không chặn chương trình
-  firebaseLoop(lockId);
+  http.end(); // Đóng kết nối HTTP
+  return false; // Trả về false nếu có lỗi
 }
+

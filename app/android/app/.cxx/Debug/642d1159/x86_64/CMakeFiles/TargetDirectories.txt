@@ -1,0 +1,2 @@
+C:/Users/pc/Desktop/afternoon/IOT-SmartLock/app/android/app/.cxx/Debug/642d1159/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/pc/Desktop/afternoon/IOT-SmartLock/app/android/app/.cxx/Debug/642d1159/x86_64/CMakeFiles/rebuild_cache.dir

@@ -77,8 +77,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 message: lock['message'] ?? '',
                 time: formatTimestamp(lock['time']),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('ID: ${lock['id']}')),
+                  Navigator.pushNamed(
+                    context,
+                    '/device_manager',
+                    arguments: lock['id'],
                   );
                 },
               );

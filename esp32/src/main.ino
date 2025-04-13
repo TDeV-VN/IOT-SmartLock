@@ -42,6 +42,7 @@ void setup() {
 }
 
 void loop() {
+  checkPinCodeEnable(lockId);
   char key = keypad.getKey();
 
   if (key) {
@@ -76,6 +77,9 @@ void loop() {
 
       // Ghi lịch sử mở khóa
       putOpenHistory(uuid, lockId, "mã khóa", "Khóa");
+
+      // Xóa pin_code_disable sau khi mở khóa
+      deletePinCodeDisable(lockId);
     }
 
     if (key == 'B') {

@@ -81,11 +81,13 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
                     lcd.clear();
                     lcd.setCursor(0, 0);
                     lcd.print("Mo khoa thanh cong!");
-                    delay(2000);
+                    delay(2000);\
                     lcd.clear();
                     preferences_lockcontrol.begin("config", false);
                     preferences_lockcontrol.putInt("incorrectAttempts", 0);  // Reset số lần sai khi nhập đúng
                     preferences_lockcontrol.end();
+                    delay(3000); // Giữ relay mở trong 5 giây
+                    digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
                     return 0;  // Reset incorrectAttempts về 0
                 } else {
                     lcd.clear();

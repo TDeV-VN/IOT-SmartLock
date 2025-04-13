@@ -122,3 +122,34 @@ void putWarningHistory(const String& uuid, const String& lockId, const String& m
     Serial.printf("Lỗi ghi warning_history: %s\n", fbdo.errorReason().c_str());
   }
 }
+
+void deletePinCodeDisable(const String& lockId) {
+  String path = "/lock/" + lockId + "/pin_code_disable";
+  if (Firebase.deleteNode(fbdo, path)) {
+    Serial.println("Đã xóa pin_code_disable.");
+  } else {
+    Serial.printf("Lỗi khi xóa pin_code_disable: %s\n", fbdo.errorReason().c_str());
+  }
+}
+
+bool checkPinCodeEnable(const String& lockId) {
+  String path = "/lock/" + lockId + "/pin_code_disable";
+
+  if (Firebase.getInt(fbdo, path)) {
+    unsigned long disableUntil = fbdo.intData();
+    unsigned long now = time(nullptr);
+
+    if (now >= disableUntil) {
+      // Đã hết thời gian nhưng không xóa ở đây
+      Serial.println("PIN code hết thời gian vô hiệu (cần xóa).");
+      return true;
+    } else {
+      Serial.println("PIN code vẫn đang bị vô hiệu.");
+      return false;
+    }
+  } else {
+    // Không có key pin_code_disable → mã PIN hoạt động
+    Serial.println("PIN code không bị vô hiệu.");
+    return true;
+  }
+}

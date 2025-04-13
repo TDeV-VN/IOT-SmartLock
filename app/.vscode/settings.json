@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/Users/pc/Desktop/haiz/IOT-SmartLock/app/linux"
+  "cmake.sourceDirectory": "C:/Users/pc/Desktop/haiz/IOT-SmartLock/app/linux",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

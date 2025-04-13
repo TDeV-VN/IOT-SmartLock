@@ -1,0 +1,2 @@
+C:/Users/DELL/Downloads/newwww/IOT-SmartLock/app/android/app/.cxx/Debug/1t6p5c6t/x86/CMakeFiles/edit_cache.dir
+C:/Users/DELL/Downloads/newwww/IOT-SmartLock/app/android/app/.cxx/Debug/1t6p5c6t/x86/CMakeFiles/rebuild_cache.dir

@@ -27,13 +27,15 @@ class _SignUpState extends State<SignUp> {
 
     try {
       // Tạo tài khoản với email và mật khẩu
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       // Cập nhật tên người dùng
-      await userCredential.user?.updateDisplayName(_usernameController.text.trim());
+      await userCredential.user
+          ?.updateDisplayName(_usernameController.text.trim());
 
       // Điều hướng đến màn hình chính
       Navigator.pushReplacementNamed(context, '/home');
@@ -135,7 +137,8 @@ class _SignUpState extends State<SignUp> {
                         child: Container(
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height * 0.07,
-                          margin: const EdgeInsets.only(top:20, left: 20, right: 20),
+                          margin: const EdgeInsets.only(
+                              top: 20, left: 20, right: 20),
                           decoration: BoxDecoration(
                             color: constants.primary1,
                             borderRadius:

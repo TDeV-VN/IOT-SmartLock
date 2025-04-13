@@ -5,7 +5,7 @@
 #include "firebase_handler.h"
 
 String lockId = "lock_id1";
-String uuid = "uuid1";
+String uuid = "OYXo28NsfreARQqbbcecw89nspb2";
 
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);

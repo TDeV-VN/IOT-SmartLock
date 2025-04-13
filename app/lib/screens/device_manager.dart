@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-
+import 'warning_history.dart';
+import 'open_history.dart';
 import 'change_pin_code.dart';
 
 class DeviceManagerScreen extends StatelessWidget {
-  final TextEditingController deviceIdController = TextEditingController();
-
   DeviceManagerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final String? lockId = ModalRoute.of(context)?.settings.arguments as String?;
     return Scaffold(
       appBar: AppBar(
         title: Text('Test quản lý thiết bị'),
@@ -18,26 +18,34 @@ class DeviceManagerScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: deviceIdController,
-              decoration: InputDecoration(
-                labelText: 'Nhập Device ID',
-                border: OutlineInputBorder(),
-              ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                showChangePinCodeBottomSheet(context, lockId!);
+              },
+              child: Text('Đổi mã khóa'),
             ),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final deviceId = deviceIdController.text.trim();
-                if (deviceId.isNotEmpty) {
-                  showChangePinCodeBottomSheet(context, deviceId);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Vui lòng nhập Device ID')),
-                  );
-                }
+                Navigator.pushNamed(
+                  context,
+                  '/warning_history',
+                  arguments: lockId,
+                );
               },
-              child: Text('Đổi mã khóa'),
+              child: Text('Xem lịch sử cảnh báo'),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/open_history',
+                  arguments: lockId,
+                );
+              },
+              child: Text('Xem lịch sử mở khoá'),
             ),
           ],
         ),

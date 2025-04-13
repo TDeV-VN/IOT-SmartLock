@@ -227,6 +227,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     print("[DEBUG] Build được gọi với ${locks.length} khóa");
     
     return Scaffold(
@@ -273,6 +274,33 @@ class _DevicesScreenState extends State<DevicesScreen> {
               SizedBox(height: 100),
             ],
           ),
+=======
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20),
+            CustomAppBar(subtitle: 'Quản lý thiết bị'),
+            SizedBox(height: 20),
+            ...locks.map((lock) {
+              return _buildSmartLockCard(
+                name: lock['name'] ?? 'Không tên',
+                message: lock['message'] ?? '',
+                time: formatTimestamp(lock['time']),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/device_manager',
+                    arguments: lock['id'],
+                  );
+                },
+              );
+            }).toList(),
+            SizedBox(height: 100),
+          ],
+>>>>>>> 80ac0e23b975adfbd9e00046b57f04e455792b01
         ),
       ),
     );

@@ -4,12 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Thư viện để định dạng ngày tháng
 
 class OpenHistoryScreen extends StatefulWidget {
+  const OpenHistoryScreen({super.key});
+
   @override
   _OpenHistoryScreenState createState() => _OpenHistoryScreenState();
 }
 
 class _OpenHistoryScreenState extends State<OpenHistoryScreen> {
-  final DatabaseReference _ref = FirebaseDatabase.instance.ref('lock/lock_id1/open_history');
+  late DatabaseReference _ref;
+  bool _initialized = false; // Đảm bảo chỉ khởi tạo 1 lần
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final String? lockId = ModalRoute.of(context)?.settings.arguments as String?;
+      if (lockId != null) {
+        _ref = FirebaseDatabase.instance.ref('lock/$lockId/open_history');
+        _initialized = true;
+      } else {
+        throw Exception('lockId không được cung cấp qua arguments');
+      }
+    }
+  }
 
   String formatTimestamp(String timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000);
@@ -19,26 +36,29 @@ class _OpenHistoryScreenState extends State<OpenHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lịch sử mở khóa')),
+      appBar: AppBar(title: const Text('Lịch sử mở khóa')),
       body: StreamBuilder<DatabaseEvent>(
         stream: _ref.onValue,
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-            List<dynamic> history = snapshot.data!.snapshot.value as List<dynamic>;
+            final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+            final history = data.entries.toList()
+              ..sort((a, b) => b.key.compareTo(a.key)); // Sắp xếp giảm dần
+
             return ListView.builder(
               itemCount: history.length,
               itemBuilder: (context, index) {
-                var entry = history[index];
+                var entry = history[index].value;
                 return ListTile(
                   title: Text("${entry['device']}: ${entry['method']}"),
-                  subtitle: Text(formatTimestamp(entry['time'])),
+                  subtitle: Text(formatTimestamp(entry['time'].toString())),
                 );
               },
             );
           } else if (snapshot.hasError) {
             return Center(child: Text("Lỗi: ${snapshot.error}"));
           }
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );

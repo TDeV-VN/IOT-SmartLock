@@ -9,6 +9,8 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 #include <ArduinoJson.h>
+#include <WiFi.h>
+#include <NVS.h>
 
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
@@ -117,3 +119,24 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
   return false; // Trả về false nếu có lỗi
 }
 
+
+// Hàm reset ESP32 và xóa dữ liệu liên quan đến lock_id
+void resetAndClearData(const String& lock_id) {
+  // 1. Xóa dữ liệu liên quan đến lock_id trong Firebase Realtime Database
+  String path = "/lock/" + lock_id;  // Đường dẫn đến dữ liệu lock_id
+  if (Firebase.delete(firebaseData, path)) {
+    Serial.println("Firebase data for lock_id deleted successfully.");
+  } else {
+    Serial.print("Failed to delete data from Firebase: ");
+    Serial.println(firebaseData.errorReason());
+  }
+
+  // 2. Xóa toàn bộ dữ liệu trong NVS (Non-Volatile Storage)
+  NVS.begin("storage", false);  // Mở NVS với tên "storage"
+  NVS.eraseAll();  // Xóa toàn bộ dữ liệu trong NVS
+  Serial.println("All NVS data erased.");
+
+  // 3. Reset ESP32
+  Serial.println("Resetting ESP32...");
+  ESP.restart();  // Khởi động lại ESP32
+}

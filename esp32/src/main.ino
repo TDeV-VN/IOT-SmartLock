@@ -17,6 +17,7 @@ String lockId = "lock_id1";
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();
 void handleWifiClient();
+String uuid = "OYXo28NsfreARQqbbcecw89nspb2";
 
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
@@ -36,11 +37,13 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("* to enter code");
 
+  // Cấu hình relay và buzzer
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
-  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);  // relay OFF
+  digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
+
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
-  // Kết nối wifi
+  // Kết nối WiFi
   WiFi.begin("Wokwi-GUEST", "", 6);
   Serial.print("Dang ket noi wifi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -48,7 +51,8 @@ void setup() {
     delay(500);
   }
   Serial.println("\nWifi da ket noi!");
-  
+
+  // Khởi động Firebase
   firebaseSetup();
 }
 
@@ -56,6 +60,7 @@ void loop() {
   // Xử lý client web server
   handleWifiClient();
 
+  checkPinCodeEnable(lockId);
   char key = keypad.getKey();
   if (key == '*') {
     // Truyền giá trị incorrectAttempts vào hàm và nhận giá trị trả về
@@ -72,6 +77,7 @@ void loop() {
   //   Serial.println("Firmware update failed.");
   // }
 
+  firebaseLoop(lockId); // Cập nhật trạng thái Firebase
 }
 
 bool checkAndUpdateFirmware(const String &currentVersion) {

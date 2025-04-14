@@ -13,6 +13,9 @@
 --------------------------------------------------------------                      
 - Khi ấn vào nút # thì relay sẽ tắt -> đèn tắt, sau 5s relay mở -> đèn mở
 
+- Khi ấn nút B nó sẽ lưu thông tin vào warning_history
+
+- Khi ấn nút # nó sẽ lưu thông tin vào open_history, chưa thể thêm vào latest_notification
 ------------------------------------------------------------------
 
 NẠP CODE CHO BOARD Kit Wifi BLE ESP32 NodeMCU-32S CH340 Ai-Thinker:

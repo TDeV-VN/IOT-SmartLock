@@ -1,12 +1,12 @@
 #include <FirebaseESP32.h>
-#include <Preferences.h>
+#include <preferences.h>
 #include "gpo_config.h"
 
 #define FIREBASE_HOST "https://slock-bb631-default-rtdb.firebaseio.com/"
 #define FIREBASE_AUTH "AIzaSyBUmpTr3r3gfn7erG-KYPMoUXXbseVPOSs"
 
 FirebaseData fbdo;
-Preferences preferences;
+Preferences preferences_firebase;
 
 bool isUnlocking = false;
 String currentPinCode = "";
@@ -18,8 +18,8 @@ void firebaseSetup() {
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
   digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); 
 
-  preferences.begin("config", false);
-  currentPinCode = preferences.getString("pinCode", "");
+  preferences_firebase.begin("config", false);
+  currentPinCode = preferences_firebase.getString("pinCode", "");
   Serial.printf("PIN code hiện tại từ NVS: %s\n", currentPinCode.c_str());
 
   Serial.println("Firebase đã khởi động!");
@@ -65,7 +65,7 @@ void firebaseLoop(const String& lockId) {
     String newPin = fbdo.stringData();
     if (newPin != currentPinCode) {
       Serial.printf("Phát hiện PIN code mới từ Firebase: %s\n", newPin.c_str());
-      preferences.putString("pinCode", newPin);
+      preferences_firebase.putString("pinCode", newPin);
       currentPinCode = newPin;
       Serial.println("Đã cập nhật pinCode vào NVS.");
     }

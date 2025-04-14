@@ -3,7 +3,7 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
-#include "preference.h"  
+#include "Preference.h"  
 
 extern WebServer server;  // Đối tượng server sẽ được khai báo ở một nơi duy nhất
 

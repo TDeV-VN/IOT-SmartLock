@@ -11,13 +11,13 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 
-#define FIRMWARE_VERSION "1.0.7"
+#define FIRMWARE_VERSION "v1.0.8"
 String lockId = "lock_id1";
+String uuid = "OYXo28NsfreARQqbbcecw89nspb2";
 
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();
 void handleWifiClient();
-String uuid = "OYXo28NsfreARQqbbcecw89nspb2";
 
 // Khai báo bàn phím ma trận
 Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CONFIG::colPins, GPO_CONFIG::rows, GPO_CONFIG::cols);
@@ -27,8 +27,14 @@ LiquidCrystal lcd(GPO_CONFIG::RS, GPO_CONFIG::E, GPO_CONFIG::D4, GPO_CONFIG::D5,
 
 int incorrectAttempts = 0;  // Biến lưu số lần sai
 
+unsigned long lastFirebaseUpdate = 0;
+const unsigned long FIREBASE_INTERVAL = 1000; 
+
 void setup() {
   Serial.begin(115200);
+
+  // Khởi động LCD
+  lcd.begin(16, 2);
 
   // Cấu hình relay và buzzer
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
@@ -43,47 +49,42 @@ void setup() {
   lcd.print("Connecting WiFi...");
   // Kết nối WiFi
   WiFi.begin("Tiến", "11012004Aa");
+  // WiFi.begin("Wokwi-GUEST", "", 6);
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
     delay(500);
   }
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Connected to WiFi");
-
-  // Khởi động LCD
-  lcd.begin(16, 2);
-  lcd.setCursor(0, 0);
-  lcd.print("HELLO!");
-  lcd.setCursor(0, 1);
-  lcd.print("* to enter code");
+  delay(1000);
+  lcd.clear();
 
   // Khởi động Firebase
-  firebaseSetup();
+  firebaseSetup(lcd);
 }
 
 void loop() {
   // Xử lý client web server
-  handleWifiClient();
+  // handleWifiClient();
 
-  checkPinCodeEnable(lockId);
+  // checkPinCodeEnable(lockId);
   char key = keypad.getKey();
-  if (key == '*') {
-    // Truyền giá trị incorrectAttempts vào hàm và nhận giá trị trả về
-    Serial.println("Số lần sai trước khi nhập mã: " + String(incorrectAttempts));
-    incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);  
-    Serial.println("Số lần sai sau khi nhập mã 1: " + String(incorrectAttempts));
-  }
-  if (key == '#') {
-    bool success = checkAndUpdateFirmware(FIRMWARE_VERSION);
-    if (success) {
-      Serial.println("Firmware update successful.");
-    } else {
-      Serial.println("Firmware update failed.");
+  if (key) {
+    Serial.println("Key pressed: " + String(key));
+    lcd.setCursor(0, 0);
+    lcd.print("Key: " + String(key) + "        ");
+    if (key == '*') {
+      incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);
+    } else if (key == '#') {
+      checkAndUpdateFirmware(FIRMWARE_VERSION);
     }
   }
 
-  firebaseLoop(lockId); // Cập nhật trạng thái Firebase
+  // Gọi firebase định kỳ
+  if (millis() - lastFirebaseUpdate > FIREBASE_INTERVAL) {
+    firebaseLoop(lockId);
+    lastFirebaseUpdate = millis();
+  }
 }
 
 bool checkAndUpdateFirmware(const String &currentVersion) {
@@ -99,7 +100,10 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
     Serial.println("Received data: " + payload);
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Checking update...");
+    lcd.print("Kiem tra");
+    lcd.setCursor(0, 1);
+    lcd.print("cap nhat...");
+    delay(1000);
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, payload);
@@ -107,7 +111,7 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
       Serial.println("JSON parse failed!");
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Check update error!");
+      lcd.print("Loi JSON!");
       http.end();
       return false;
     }
@@ -115,14 +119,12 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
     String latestVersion = doc["version"];
     String firmwareDownloadUrl = doc["url"];
 
-    Serial.println("Current Version: " + currentVersion);
-    Serial.println("Latest Version: " + latestVersion);
-
     if (latestVersion != currentVersion) {
-      Serial.println("Firmware update available. Starting download...");
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Updating firmware...");
+      lcd.print("Cap nhat");
+      lcd.setCursor(0, 1);
+      lcd.print("firmware...");
 
       http.end(); // Đóng kết nối cũ trước khi mở kết nối mới
       http.begin(firmwareDownloadUrl);
@@ -136,16 +138,16 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
           size_t written = Update.writeStream(*client);
           if (written == contentLength) {
             if (Update.end(true)) {
-              Serial.println("Firmware updated successfully.");
               lcd.clear();
               lcd.setCursor(0, 0);
-              lcd.print("Update complete!");
+              lcd.print("Cap nhat");
+              lcd.setCursor(0, 1);
+              lcd.print("thanh cong!");
               http.end();
               delay(1000); // Đợi một chút để log được in ra ổn định
-              Serial.println("Restarting device...");
               lcd.clear();
               lcd.setCursor(0, 0);
-              lcd.print("Restarting...");
+              lcd.print("Khoi dong lai...");
               ESP.restart(); //  Khởi động lại thiết bị
               return true;
             } else {

@@ -13,7 +13,14 @@ Preferences preferences_firebase;
 bool isUnlocking = false;
 String currentPinCode = "";
 
-void firebaseSetup() {
+void firebaseSetup(LiquidCrystal& lcd) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Dang ket noi");
+  lcd.setCursor(0, 1);
+  lcd.print("database...");
+  delay(2000);
+
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.reconnectWiFi(true);
 
@@ -27,6 +34,13 @@ void firebaseSetup() {
   configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
 
   Serial.println("Firebase đã khởi động!");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Da ket noi");
+  lcd.setCursor(0, 1);
+  lcd.print("database!");
+  delay(2000);
+  lcd.clear();
 }
 
 void firebaseLoop(const String& lockId) {

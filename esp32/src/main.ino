@@ -11,7 +11,7 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 
-#define FIRMWARE_VERSION "1.0.5"
+#define FIRMWARE_VERSION "1.0.6"
 String lockId = "lock_id1";
 
 // Khai báo các hàm từ wifi_connection.cpp

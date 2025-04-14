@@ -60,7 +60,7 @@ int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts)
                 delay(1500);
                 lcd.clear();
                 lcd.setCursor(0, 0);
-                lcd.print("FIRMWARE OLD!");
+                lcd.print("HELLO!");
                 lcd.setCursor(0, 1);
                 lcd.print("* to enter code");
 

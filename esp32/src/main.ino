@@ -11,7 +11,7 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 
-#define FIRMWARE_VERSION "1.0.6"
+#define FIRMWARE_VERSION "1.0.7"
 String lockId = "lock_id1";
 
 // Khai báo các hàm từ wifi_connection.cpp
@@ -38,7 +38,7 @@ void setup() {
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Firmware ${FIRMWARE_VERSION}");
+  lcd.print("Firmware " + String(FIRMWARE_VERSION));
   lcd.setCursor(0, 1);
   lcd.print("Connecting WiFi...");
   // Kết nối WiFi
@@ -54,7 +54,7 @@ void setup() {
   // Khởi động LCD
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
-  lcd.print("HELLLO!");
+  lcd.print("HELLO!");
   lcd.setCursor(0, 1);
   lcd.print("* to enter code");
 
@@ -97,11 +97,17 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
   if (httpCode == HTTP_CODE_OK) {
     String payload = http.getString();
     Serial.println("Received data: " + payload);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Checking update...");
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, payload);
     if (error) {
       Serial.println("JSON parse failed!");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Check update error!");
       http.end();
       return false;
     }
@@ -114,6 +120,9 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
 
     if (latestVersion != currentVersion) {
       Serial.println("Firmware update available. Starting download...");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Updating firmware...");
 
       http.end(); // Đóng kết nối cũ trước khi mở kết nối mới
       http.begin(firmwareDownloadUrl);
@@ -128,28 +137,52 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
           if (written == contentLength) {
             if (Update.end(true)) {
               Serial.println("Firmware updated successfully.");
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Update complete!");
               http.end();
               delay(1000); // Đợi một chút để log được in ra ổn định
               Serial.println("Restarting device...");
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Restarting...");
               ESP.restart(); //  Khởi động lại thiết bị
               return true;
             } else {
               Serial.println("Update.end() failed: " + String(Update.getError()));
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Update failed!");
             }
           } else {
             Serial.println("Written size mismatch. Written: " + String(written));
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Write error!");
           }
         } else {
           Serial.println("Update.begin() failed.");
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Update error!");
         }
       } else {
         Serial.println("Failed to download firmware. HTTP code: " + String(firmwareCode));
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Download error!");
       }
     } else {
       Serial.println("No firmware update needed.");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("No update needed!");
     }
   } else {
     Serial.println("Failed to fetch firmware information. HTTP code: " + String(httpCode));
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Check update error!");
   }
 
   http.end();

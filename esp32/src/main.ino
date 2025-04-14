@@ -11,7 +11,7 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 
-#define FIRMWARE_VERSION "1.0.3"
+#define FIRMWARE_VERSION "1.0.4"
 String lockId = "lock_id1";
 
 // Khai báo các hàm từ wifi_connection.cpp
@@ -29,13 +29,6 @@ int incorrectAttempts = 0;  // Biến lưu số lần sai
 
 void setup() {
   Serial.begin(115200);
-
-  // Khởi động LCD
-  lcd.begin(16, 2);
-  lcd.setCursor(0, 0);
-  lcd.print("FIRMWARE OLD!");
-  lcd.setCursor(0, 1);
-  lcd.print("* to enter code");
 
   // Cấu hình relay và buzzer
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
@@ -57,6 +50,13 @@ void setup() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Connected to WiFi");
+
+  // Khởi động LCD
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print("HELLLO!");
+  lcd.setCursor(0, 1);
+  lcd.print("* to enter code");
 
   // Khởi động Firebase
   firebaseSetup();

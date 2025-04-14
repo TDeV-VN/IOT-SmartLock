@@ -11,7 +11,7 @@
 #include "lock_control.h"
 #include "wifi_connection.h"
 
-#define FIRMWARE_VERSION "1.0.2"
+#define FIRMWARE_VERSION "1.0.3"
 String lockId = "lock_id1";
 
 // Khai báo các hàm từ wifi_connection.cpp
@@ -33,7 +33,7 @@ void setup() {
   // Khởi động LCD
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
-  lcd.print("HELLO MY FRIEND!");
+  lcd.print("FIRMWARE OLD!");
   lcd.setCursor(0, 1);
   lcd.print("* to enter code");
 
@@ -43,14 +43,20 @@ void setup() {
 
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Firmware ${FIRMWARE_VERSION}");
+  lcd.setCursor(0, 1);
+  lcd.print("Connecting WiFi...");
   // Kết nối WiFi
-  WiFi.begin("Wokwi-GUEST", "", 6);
-  Serial.print("Dang ket noi wifi");
+  WiFi.begin("Tiến", "11012004Aa");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);
   }
-  Serial.println("\nWifi da ket noi!");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connected to WiFi");
 
   // Khởi động Firebase
   firebaseSetup();
@@ -68,33 +74,38 @@ void loop() {
     incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);  
     Serial.println("Số lần sai sau khi nhập mã 1: " + String(incorrectAttempts));
   }
-  //check update
-  // String currentVersion = "1.0.0";  // Thay thế bằng phiên bản hiện tại của firmware
-  // bool success = checkAndUpdateFirmware(currentVersion);
-  // if (success) {
-  //   Serial.println("Firmware update successful.");
-  // } else {
-  //   Serial.println("Firmware update failed.");
-  // }
+  if (key == '#') {
+    bool success = checkAndUpdateFirmware(FIRMWARE_VERSION);
+    if (success) {
+      Serial.println("Firmware update successful.");
+    } else {
+      Serial.println("Firmware update failed.");
+    }
+  }
 
   firebaseLoop(lockId); // Cập nhật trạng thái Firebase
 }
 
 bool checkAndUpdateFirmware(const String &currentVersion) {
   HTTPClient http;
-  String firmwareUrl = "https://raw.githubusercontent.com/TDeV-VN/IOT-SmartLock-Firmware/firmware/latest.json";
+  const String infoUrl = "https://raw.githubusercontent.com/TDeV-VN/IOT-SmartLock-Firmware/firmware/latest.json";
 
-  // Gửi yêu cầu HTTP GET để tải file JSON
-  http.begin(firmwareUrl);
+  // Bước 1: Gửi yêu cầu HTTP GET để lấy thông tin firmware mới
+  http.begin(infoUrl);
   int httpCode = http.GET();
 
   if (httpCode == HTTP_CODE_OK) {
     String payload = http.getString();
     Serial.println("Received data: " + payload);
 
-    // Phân tích dữ liệu JSON để lấy version và URL firmware mới
     DynamicJsonDocument doc(1024);
-    deserializeJson(doc, payload);
+    DeserializationError error = deserializeJson(doc, payload);
+    if (error) {
+      Serial.println("JSON parse failed!");
+      http.end();
+      return false;
+    }
+
     String latestVersion = doc["version"];
     String firmwareDownloadUrl = doc["url"];
 
@@ -103,38 +114,46 @@ bool checkAndUpdateFirmware(const String &currentVersion) {
 
     if (latestVersion != currentVersion) {
       Serial.println("Firmware update available. Starting download...");
-      
-      // Tải firmware mới
+
+      http.end(); // Đóng kết nối cũ trước khi mở kết nối mới
       http.begin(firmwareDownloadUrl);
       int firmwareCode = http.GET();
+
       if (firmwareCode == HTTP_CODE_OK) {
         WiFiClient *client = http.getStreamPtr();
-        if (Update.begin(client->available())) {
-          // Tiến hành cập nhật firmware
+        int contentLength = http.getSize();
+
+        if (Update.begin(contentLength)) {
           size_t written = Update.writeStream(*client);
-          if (written == client->available()) {
+          if (written == contentLength) {
             if (Update.end(true)) {
               Serial.println("Firmware updated successfully.");
+              http.end();
+              delay(1000); // Đợi một chút để log được in ra ổn định
+              Serial.println("Restarting device...");
+              ESP.restart(); //  Khởi động lại thiết bị
               return true;
             } else {
-              Serial.println("Failed to commit firmware update.");
+              Serial.println("Update.end() failed: " + String(Update.getError()));
             }
           } else {
-            Serial.println("Failed to write firmware data.");
+            Serial.println("Written size mismatch. Written: " + String(written));
           }
+        } else {
+          Serial.println("Update.begin() failed.");
         }
       } else {
-        Serial.println("Failed to download firmware.");
+        Serial.println("Failed to download firmware. HTTP code: " + String(firmwareCode));
       }
     } else {
       Serial.println("No firmware update needed.");
     }
   } else {
-    Serial.println("Failed to fetch firmware information.");
+    Serial.println("Failed to fetch firmware information. HTTP code: " + String(httpCode));
   }
 
-  http.end(); // Đóng kết nối HTTP
-  return false; // Trả về false nếu có lỗi
+  http.end();
+  return false;
 }
 
 void sendLockNotification(const String& topic, const String& title, const String& message) {

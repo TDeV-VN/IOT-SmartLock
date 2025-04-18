@@ -9,11 +9,10 @@
 #include <Update.h>
 #include <gpo_config.h>
 #include "lock_control.h"
-#include "wifi_connection.h"
+#include "WebServerHandler.h"
 
 #define FIRMWARE_VERSION "v1.0.8"
-String lockId = "lock_id1";
-String uuid = "OYXo28NsfreARQqbbcecw89nspb2";
+String lockId = WiFi.macAddress();
 
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();
@@ -46,26 +45,37 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Firmware " + String(FIRMWARE_VERSION));
   lcd.setCursor(0, 1);
-  lcd.print("Connecting WiFi...");
-  // Kết nối WiFi
-  WiFi.begin("Tiến", "11012004Aa");
-  // WiFi.begin("Wokwi-GUEST", "", 6);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Connected to WiFi");
   delay(1000);
-  lcd.clear();
+
+  // // test xóa nvs
+  // Preferences preferences_2;
+  // preferences_2.begin("config", false);
+  // preferences_2.clear();
+  // preferences_2.end();
+
+  connectwifi();
+
+  // lcd.print("Connecting WiFi...");
+  // // Kết nối WiFi
+  // // WiFi.begin("Tiến", "11012004Aa");
+  // // WiFi.begin("Wokwi-GUEST", "", 6);
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  // }
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
+  // lcd.print("Connected to WiFi");
+  // delay(1000);
+  // lcd.clear();
 
   // Khởi động Firebase
   firebaseSetup(lcd);
 }
 
 void loop() {
-  // Xử lý client web server
-  // handleWifiClient();
+  // tiếp tục lắng nghe đẻ nhận tín hiệu tắt AP
+  extern WebServer server;
+  server.handleClient();
 
   // checkPinCodeEnable(lockId);
   char key = keypad.getKey();
@@ -85,6 +95,63 @@ void loop() {
     firebaseLoop(lockId);
     lastFirebaseUpdate = millis();
   }
+}
+
+void connectwifi() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting to WiFi...");
+
+  // lấy thông tin wifi từ NVS
+  Preferences preferences_1;
+  preferences_1.begin("config", false);
+  String ssid = preferences_1.getString("wifiSSID", "");
+  String password = preferences_1.getString("wifiPassword", "");
+  preferences_1.end();
+
+  // thử kết nối wifi với thông tin đã lưu
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting to");
+  lcd.setCursor(0, 1);
+  lcd.print(ssid + "...");
+  
+  WiFi.begin(ssid.c_str(), password.c_str());
+  int retry = 0;
+  while (WiFi.status() != WL_CONNECTED && retry < 20) {
+    delay(500);
+    retry++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Connected to");
+    lcd.setCursor(0, 1);
+    lcd.print(ssid + "!");
+    delay(1000);
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Failed to reconnect");
+    delay(2000);
+
+    // mở AP mode nếu không kết nối được wifi
+    startServer(lcd);
+    while (WiFi.status() != WL_CONNECTED) {
+      extern WebServer server;
+      server.handleClient();
+      delay(500);
+    }
+  }
+  lcd.clear();
+}
+
+String getUuidFromNVS() {
+  Preferences preferences3;
+  preferences3.begin("config", true); // true = chỉ đọc
+  String uuid = preferences3.getString("uuid", ""); // "" là giá trị mặc định nếu chưa có
+  preferences3.end();
+  return uuid;
 }
 
 bool checkAndUpdateFirmware(const String &currentVersion) {

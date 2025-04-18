@@ -12,5 +12,6 @@ void putOpenHistory(const String& uuid, const String& lockId, const String& meth
 void putWarningHistory(const String& uuid, const String& lockId, const String& message);
 void deletePinCodeDisable(const String& lockId);
 bool checkPinCodeEnable(const String& lockId);
+void putPinCodeDisable(const String& lockId, unsigned long duration);
 
 #endif

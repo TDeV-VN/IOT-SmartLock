@@ -14,6 +14,8 @@ extern const unsigned long timeoutDuration;
 extern const unsigned long wrongAttemptResetDuration;
 
 // Khai báo hàm xử lý mã khóa
-int handleLockControl(Keypad &keypad, LiquidCrystal &lcd, int incorrectAttempts);
+void handleLockControl(Keypad &keypad, LiquidCrystal &lcd);
+
+String getUuidFromNVS();
 
 #endif

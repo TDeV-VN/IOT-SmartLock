@@ -106,7 +106,7 @@ void putOpenHistory(const String& uuid, const String& lockId, const String& meth
   }
 
   FirebaseJson notiJson;
-  notiJson.set("message", method);
+  notiJson.set("message", "Mở khóa");
   notiJson.set("time", String(timestamp));
 
   for (int i = 0; ; i++) {
@@ -125,6 +125,7 @@ void putOpenHistory(const String& uuid, const String& lockId, const String& meth
 
 void putWarningHistory(const String& uuid, const String& lockId, const String& message) {
   String warningPath = "/lock/" + lockId + "/warning_history";
+  String notiPath = "/account/" + uuid + "/lock";
   unsigned long timestamp = time(nullptr);
 
   FirebaseJson warningJson;
@@ -136,6 +137,22 @@ void putWarningHistory(const String& uuid, const String& lockId, const String& m
   } else {
     Serial.printf("Lỗi ghi warning_history: %s\n", fbdo.errorReason().c_str());
   }
+
+  FirebaseJson notiJson;
+  notiJson.set("message", message);
+  notiJson.set("time", String(timestamp));
+  for (int i = 0; ; i++) {
+    String itemPath = notiPath + "/" + String(i);
+    if (!Firebase.getString(fbdo, itemPath + "/id")) break;
+    if (fbdo.stringData() == lockId) {
+      if (Firebase.setJSON(fbdo, itemPath + "/latest_notification", notiJson)) {
+        Serial.println("Đã cập nhật latest_notification.");
+      } else {
+        Serial.printf("Lỗi khi cập nhật notification: %s\n", fbdo.errorReason().c_str());
+      }
+      break;
+    }
+  }
 }
 
 void deletePinCodeDisable(const String& lockId) {
@@ -144,6 +161,17 @@ void deletePinCodeDisable(const String& lockId) {
     Serial.println("Đã xóa pin_code_disable.");
   } else {
     Serial.printf("Lỗi khi xóa pin_code_disable: %s\n", fbdo.errorReason().c_str());
+  }
+}
+
+void putPinCodeDisable(const String& lockId, unsigned long duration) {
+  String path = "/lock/" + lockId + "/pin_code_disable";
+  unsigned long disableUntil = time(nullptr) + duration;
+
+  if (Firebase.setInt(fbdo, path, disableUntil)) {
+    Serial.println("Đã ghi pin_code_disable.");
+  } else {
+    Serial.printf("Lỗi ghi pin_code_disable: %s\n", fbdo.errorReason().c_str());
   }
 }
 

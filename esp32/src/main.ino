@@ -24,8 +24,6 @@ Keypad keypad = Keypad(makeKeymap(GPO_CONFIG::keys), GPO_CONFIG::rowPins, GPO_CO
 // Khai báo LCD 16x2
 LiquidCrystal lcd(GPO_CONFIG::RS, GPO_CONFIG::E, GPO_CONFIG::D4, GPO_CONFIG::D5, GPO_CONFIG::D6, GPO_CONFIG::D7);
 
-int incorrectAttempts = 0;  // Biến lưu số lần sai
-
 unsigned long lastFirebaseUpdate = 0;
 const unsigned long FIREBASE_INTERVAL = 1000; 
 
@@ -84,7 +82,7 @@ void loop() {
     lcd.setCursor(0, 0);
     lcd.print("Key: " + String(key) + "        ");
     if (key == '*') {
-      incorrectAttempts = handleLockControl(keypad, lcd, incorrectAttempts);
+      handleLockControl(keypad, lcd);
     } else if (key == '#') {
       checkAndUpdateFirmware(FIRMWARE_VERSION);
     }
@@ -144,14 +142,6 @@ void connectwifi() {
     }
   }
   lcd.clear();
-}
-
-String getUuidFromNVS() {
-  Preferences preferences3;
-  preferences3.begin("config", true); // true = chỉ đọc
-  String uuid = preferences3.getString("uuid", ""); // "" là giá trị mặc định nếu chưa có
-  preferences3.end();
-  return uuid;
 }
 
 bool checkAndUpdateFirmware(const String &currentVersion) {

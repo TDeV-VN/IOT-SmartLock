@@ -3,6 +3,7 @@
 #include <WebServer.h>
 #include <Preferences.h>
 #include <LiquidCrystal.h>
+#include "lock_control.h"
 
 WebServer server(80);
 Preferences preferences_apiserver;
@@ -31,7 +32,7 @@ void handleScanWifi() {
 }
 
 void handleGetMac() {
-  String mac = WiFi.macAddress();
+  String mac = getLockId();
   server.send(200, "text/plain", mac);
 }
 

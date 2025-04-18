@@ -35,7 +35,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal &lcd) {
     preferences_lockcontrol.end();
 
     // nếu dữ firebase đã bị vô hiệu hóa mã khóa thì không cho nhập mã khóa
-    if (checkPinCodeEnable(WiFi.macAddress()) == false) {
+    if (checkPinCodeEnable(getLockId()) == false) {
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Ma khoa da");
@@ -100,7 +100,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal &lcd) {
                     delay(3000); // Giữ relay mở trong 5 giây
                     digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
                     // ghi lịch sử mở khóa vào Firebase
-                    putOpenHistory(getUuidFromNVS(), WiFi.macAddress(), "mã khóa", "Ổ khóa");
+                    putOpenHistory(getUuidFromNVS(), getLockId(), "mã khóa", "Ổ khóa");
                 
 
                     return;
@@ -133,7 +133,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal &lcd) {
                         lcd.print("ma khoa!");
 
                         //ghi lịch sử vào Firebase
-                        putWarningHistory(getUuidFromNVS(), WiFi.macAddress(), "Truy cập trái phép");
+                        putWarningHistory(getUuidFromNVS(), getLockId(), "Truy cập trái phép");
 
                         // reset số lần sai và thời gian sai đầu tiên trong nvs
                         preferences_lockcontrol.begin("config", false);
@@ -174,4 +174,11 @@ String getUuidFromNVS() {
     String uuid = preferences3.getString("uuid", ""); // "" là giá trị mặc định nếu chưa có
     preferences3.end();
     return uuid;
-  }
+}
+
+String getLockId() {
+    // lấy mac và bỏ đi dấu ":"
+    String mac = WiFi.macAddress();
+    mac.replace(":", "");
+    return mac;
+}

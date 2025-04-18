@@ -12,7 +12,7 @@
 #include "WebServerHandler.h"
 
 #define FIRMWARE_VERSION "v1.0.8"
-String lockId = WiFi.macAddress();
+String lockId = getLockId();
 
 // Khai báo các hàm từ wifi_connection.cpp
 void setupWifiServer();

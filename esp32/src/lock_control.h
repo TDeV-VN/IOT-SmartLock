@@ -17,5 +17,6 @@ extern const unsigned long wrongAttemptResetDuration;
 void handleLockControl(Keypad &keypad, LiquidCrystal &lcd);
 
 String getUuidFromNVS();
+String getLockId();
 
 #endif

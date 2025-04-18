@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import 'package:firebase_messaging/firebase_messaging.dart';
-=======
 import 'package:firebase_auth/firebase_auth.dart';
->>>>>>> 80ac0e23b975adfbd9e00046b57f04e455792b01
 
 import 'screens/device_manager.dart';
 import 'screens/home_screen.dart';
@@ -13,15 +9,9 @@ import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'screens/loginScreen.dart';
 import 'screens/signupScreen.dart';
-import 'services/fcm_service.dart'; 
+import 'services/fcm_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print("Handling a background message: ${message.messageId}");
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,10 +19,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   final fcmService = FCMService(navigatorKey: navigatorKey);
-  await fcmService.initialize();
+  await fcmService.init();
 
   runApp(MyApp());
 }

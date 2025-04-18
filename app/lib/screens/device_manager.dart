@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'change_lock_name.dart';
 import 'warning_history.dart';
 import 'open_history.dart';
 import 'change_pin_code.dart';
@@ -46,6 +47,13 @@ class DeviceManagerScreen extends StatelessWidget {
                 );
               },
               child: Text('Xem lịch sử mở khoá'),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                showChangeLockNameBottomSheet(context, lockId!);
+              },
+              child: Text('Đổi tên khóa'),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:app/constant.dart' as constants;
+import '../widgets/custom_button.dart';
 import 'loginScreen.dart';
 
 class SignUp extends StatefulWidget {
@@ -131,29 +132,14 @@ class _SignUpState extends State<SignUp> {
                             style: const TextStyle(color: Colors.red),
                           ),
                         ),
-                      const SizedBox(height: 20),
-                      InkWell(
-                        onTap: _signUp,
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.07,
-                          margin: const EdgeInsets.only(
-                              top: 20, left: 20, right: 20),
-                          decoration: BoxDecoration(
-                            color: constants.primary1,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Đăng ký",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w500,
-                                color: constants.whiteshade,
-                              ),
-                            ),
-                          ),
+                      const SizedBox(height: 40),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20), // Thêm padding ở đây nếu không dùng margin trong CustomButton
+                        child: CustomButton(
+                          text: "Đăng ký",
+                          onPressed: _signUp,
+                          // Có thể thêm margin ở đây nếu CustomButton đã hỗ trợ
+                          // margin: EdgeInsets.symmetric(horizontal: 20),
                         ),
                       ),
                     ],

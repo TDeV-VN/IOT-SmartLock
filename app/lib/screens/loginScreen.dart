@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:app/constant.dart' as constants; // Thêm alias 'constants'
 import 'signupScreen.dart';
+import 'package:app/widgets/custom_button.dart';
 
 class Signin extends StatefulWidget {
   const Signin({Key? key}) : super(key: key);
@@ -120,28 +121,13 @@ class _SigninState extends State<Signin> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      InkWell(
-                        onTap: _signIn,
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.07,
-                          margin: const EdgeInsets.only(left: 20, right: 20),
-                          decoration: BoxDecoration(
-                            color: constants.primary1, // Sử dụng constants.blue
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Đăng nhập",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w500,
-                                color: constants
-                                    .whiteshade, // Sử dụng constants.whiteshade
-                              ),
-                            ),
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20), // Thêm padding ở đây nếu không dùng margin trong CustomButton
+                        child: CustomButton(
+                          text: "Đăng nhập",
+                          onPressed: _signIn,
+                          // Có thể thêm margin ở đây nếu CustomButton đã hỗ trợ
+                          // margin: EdgeInsets.symmetric(horizontal: 20),
                         ),
                       ),
                       Container(

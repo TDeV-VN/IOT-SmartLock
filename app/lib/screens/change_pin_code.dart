@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/services.dart';
 
+import '../widgets/custom_button.dart';
+
 void showChangePinCodeBottomSheet(BuildContext context, String lockId) {
   final TextEditingController newPinController = TextEditingController();
   final TextEditingController confirmPinController = TextEditingController();
@@ -29,6 +31,7 @@ void showChangePinCodeBottomSheet(BuildContext context, String lockId) {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                SizedBox(height: 10),
                 Text('Đổi mã khóa', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
                 Text('Mã khóa 4 chữ số', style: TextStyle(color: Colors.grey)),
@@ -60,9 +63,10 @@ void showChangePinCodeBottomSheet(BuildContext context, String lockId) {
                     errorText: confirmPinError,
                   ),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 20),
 
-                ElevatedButton(
+                CustomButton(
+                  text: "Lưu",
                   onPressed: () async {
                     final newPin = newPinController.text.trim();
                     final confirmPin = confirmPinController.text.trim();
@@ -106,9 +110,8 @@ void showChangePinCodeBottomSheet(BuildContext context, String lockId) {
                       );
                     }
                   },
-                  child: Text('Lưu'),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 100),
               ],
             ),
           );

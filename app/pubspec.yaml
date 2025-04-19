@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  mqtt_client: ^10.8.0
   firebase_auth: ^4.19.5
   firebase_core: ^2.31.0
   intl: ^0.18.0 # thư viện hỗ trợ định dạng ngày tháng

@@ -5,6 +5,7 @@ import 'package:app/constant.dart' as constants; // Thêm alias 'constants'
 import 'package:app/constant.dart'
 as constants; // Sử dụng alias để tránh xung đột
 import 'package:app/widgets/bottom_navigation_bar.dart';
+import 'change_pin_code.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
 import 'package:app/widgets/custom_appbar.dart';
@@ -128,9 +129,9 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Column(
       children: [
-        LockButton(),
-        const SizedBox(height: 12),
-        if (hasDisabledPin) _buildPinCodeWarning(),
+        hasDisabledPin ? _buildPinCodeWarning() : LockButton(),
+        // const SizedBox(height: 12),
+        // if (hasDisabledPin) _buildPinCodeWarning(),
       ],
     );
   }
@@ -247,41 +248,86 @@ class _HomeScreenState extends State<HomeScreen>
     final expiration = int.parse(pinData['expiration_time'].toString());
 
     return StreamBuilder<DateTime>(
-      stream: Stream.periodic(Duration(seconds: 1), (_) => DateTime.now()),
+      stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
       builder: (context, snapshot) {
         final remaining = expiration - DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
         if (remaining <= 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            FirebaseDatabase.instance.ref('lock/$_selectedLockId/pin_code_disable')
+            FirebaseDatabase.instance
+                .ref('lock/$_selectedLockId/pin_code_disable')
                 .remove();
           });
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         }
 
-        final hours = remaining ~/ 3600;
-        final minutes = (remaining % 3600) ~/ 60;
-        final seconds = remaining % 60;
+        final minutes = (remaining ~/ 60).toString().padLeft(2, '0');
+        final seconds = (remaining % 60).toString().padLeft(2, '0');
+        final formattedTime = "$minutes:$seconds";
 
-        // Sửa ở đây: Thay Alert bằng Container/Card
-        return Container(
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.orange[100],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange),
-          ),
+        return Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                "Cảnh báo: Mã khóa tạm thời đã vô hiệu!",
-                style: TextStyle(color: Colors.orange[800], fontWeight: FontWeight.bold),
+              const Text(
+                "Cảnh báo",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 10),
+              const Text(
+                "Phát hiện truy cập trái phép",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Vô hiệu hóa thao tác mở\nbằng mã khóa trong",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 10),
               Text(
-                "Thời gian còn lại: ${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}",
-                style: TextStyle(color: Colors.orange[800]),
+                formattedTime,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  showChangePinCodeBottomSheet(context, _selectedLockId!);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: const Text(
+                  "Đổi mã khóa",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  // Xóa dữ liệu pin_code_disable
+                  FirebaseDatabase.instance
+                      .ref('lock/$_selectedLockId/pin_code_disable')
+                      .remove();
+                  // TODO: Xử lý tắt chuông
+                },
+                child: const Text(
+                  "Bỏ qua",
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),
@@ -289,6 +335,7 @@ class _HomeScreenState extends State<HomeScreen>
       },
     );
   }
+
 }
 
 class LockButton extends StatefulWidget {

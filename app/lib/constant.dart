@@ -8,3 +8,5 @@ Color grayshade = const Color(0xFF9FA4AF);
 Color lightblue = const Color(0xFF4B68D1);
 Color blackshade = const Color(0xFF737E88);
 Color primary1 = const Color(0xFF333A3F);
+Color green = const Color(0xFF2AED23);
+Color screenBackground = const Color(0xFFFFFFFF);

@@ -1,3 +1,4 @@
+import 'package:app/screens/wifi_setup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'screens/device_manager.dart';
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
         '/open_history': (context) => OpenHistoryScreen(),
         '/warning_history': (context) => WarningHistoryScreen(),
         '/device_manager': (context) => DeviceManagerScreen(),
+        '/wifi_setup': (context) => WifiSetupScreen(),
       },
     );
   }

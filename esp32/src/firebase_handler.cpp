@@ -203,6 +203,12 @@ bool checkPinCodeEnable(const String& lockId) {
   unsigned long currentTime = time(nullptr);
 
   Serial.printf("Now = %lu, Expiration = %lu\n", currentTime, expirationTime);
-  return currentTime > expirationTime;
+  if (currentTime > expirationTime) {
+    // xóa pin_code_disable nếu đã hết thời gian
+    deletePinCodeDisable(lockId);
+    return true; // Đã hết thời gian vô hiệu hóa mã khóa
+  }
+
+  return false;
 }
 

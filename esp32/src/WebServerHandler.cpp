@@ -2,14 +2,13 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Preferences.h>
-#include <LiquidCrystal.h>
 #include "lock_control.h"
 
 WebServer server(80);
 Preferences preferences_apiserver;
 
 // Tạo con trỏ toàn cục cho LCD
-LiquidCrystal *lcdGlobal;
+LiquidCrystal_I2C *lcdGlobal;
 
 void setupAP() {
   WiFi.softAP("Slock_AP", "12345678");
@@ -98,7 +97,7 @@ void handleConnectWifi() {
   }
 }
 
-void startServer(LiquidCrystal &lcd) {
+void startServer(LiquidCrystal_I2C &lcd) {
   lcdGlobal = &lcd; // Gán con trỏ toàn cục
   setupAP();
 

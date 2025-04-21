@@ -13,7 +13,7 @@ Preferences preferences_firebase;
 bool isUnlocking = false;
 String currentPinCode = "";
 
-void firebaseSetup(LiquidCrystal& lcd) {
+void firebaseSetup(LiquidCrystal_I2C& lcd) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Dang ket noi");

@@ -1,5 +1,4 @@
 #include <Keypad.h>
-#include <LiquidCrystal.h>
 #include <Preferences.h>  
 #include <gpo_config.h>
 #include "firebase_handler.h"
@@ -26,7 +25,7 @@ const unsigned long wrongAttemptResetDuration = 1800000; // 30 phút (1,800,000 
 // Khai báo thời gian sai cuối cùng và thời gian nhấn phím cuối cùng
 static unsigned long firstWrongAttemptTime = 0; // Biến lưu thời gian của lần thử sai đầu tiên
 static unsigned long lastKeypressTime = 0; // Biến lưu thời gian nhấn phím cuối cùng
-void handleLockControl(Keypad &keypad, LiquidCrystal &lcd) {
+void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
     preferences_lockcontrol.begin("config", false);
     incorrectAttempts = preferences_lockcontrol.getInt("incorrectAttempts", incorrectAttempts);  // Đọc lại số lần sai từ NVS
     Serial.println("Số lần sai: " + String(incorrectAttempts));  // In số lần sai từ NVS

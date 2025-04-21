@@ -141,7 +141,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                         preferences_lockcontrol.end();
 
                         // Ghi vào Firebase để vô hiệu hóa mã khóa trong 30 phút
-                        putPinCodeDisable(getUuidFromNVS(), 1800); // 30 phút = 1800 giây
+                        putPinCodeDisable(getLockId(), 1800); // 30 phút = 1800 giây
 
                         Serial.println("Vô hiệu hóa mã khóa");
 

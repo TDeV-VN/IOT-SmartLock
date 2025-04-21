@@ -168,7 +168,11 @@ void putPinCodeDisable(const String& lockId, unsigned long duration) {
   String path = "/lock/" + lockId + "/pin_code_disable";
   unsigned long disableUntil = time(nullptr) + duration;
 
-  if (Firebase.setInt(fbdo, path, disableUntil)) {
+  FirebaseJson disableJson;
+  disableJson.set("expiration_time", String(disableUntil));
+  disableJson.set("creation_time", String(time(nullptr)));
+
+  if (Firebase.setJSON(fbdo, path, disableJson)) {
     Serial.println("Đã ghi pin_code_disable.");
   } else {
     Serial.printf("Lỗi ghi pin_code_disable: %s\n", fbdo.errorReason().c_str());
@@ -178,21 +182,27 @@ void putPinCodeDisable(const String& lockId, unsigned long duration) {
 bool checkPinCodeEnable(const String& lockId) {
   String path = "/lock/" + lockId + "/pin_code_disable";
 
-  if (Firebase.getInt(fbdo, path)) {
-    unsigned long disableUntil = fbdo.intData();
-    unsigned long now = time(nullptr);
-
-    if (now >= disableUntil) {
-      // Đã hết thời gian nhưng không xóa ở đây
-      Serial.println("PIN code hết thời gian vô hiệu (cần xóa).");
-      return true;
-    } else {
-      Serial.println("PIN code vẫn đang bị vô hiệu.");
-      return false;
-    }
-  } else {
-    // Không có key pin_code_disable → mã PIN hoạt động
-    Serial.println("PIN code không bị vô hiệu.");
+  // 1) Đọc dữ liệu tại path vào fbdo
+  if (!Firebase.RTDB.getJSON(&fbdo, path)) {
+    Serial.printf("Lỗi khi đọc pin_code_disable: %s\n", fbdo.errorReason().c_str());
     return true;
   }
+
+  // 2) Lấy đối tượng JSON từ fbdo
+  FirebaseJson &json = fbdo.jsonObject();
+  FirebaseJsonData result;
+
+  // 3) Lấy trường "expiration_time"
+  if (!json.get(result, "expiration_time")) {
+    Serial.println("Không tìm thấy trường expiration_time trong JSON.");
+    return true;
+  }
+
+  // 4) Chuyển thành timestamp và so sánh
+  unsigned long expirationTime = result.to<uint32_t>();
+  unsigned long currentTime = time(nullptr);
+
+  Serial.printf("Now = %lu, Expiration = %lu\n", currentTime, expirationTime);
+  return currentTime > expirationTime;
 }
+

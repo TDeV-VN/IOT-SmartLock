@@ -190,3 +190,8 @@ void openLock(LiquidCrystal_I2C &lcd) {
     // xóa vô hiệu mã khóa ở firebase
     deletePinCodeDisable(getLockId());
 }
+
+String getFirmwareVersion() {
+    String version = "v1.0.8"; // Phiên bản hiện tại
+    return version;
+}

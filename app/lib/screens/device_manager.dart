@@ -59,8 +59,7 @@ class DeviceManagerScreen extends StatelessWidget {
     final mqtt = MQTTService();
     await mqtt.connect();
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    final topic = 'esp32/$lockId/$userId';
+    final topic = 'esp32/$lockId';
     final responseTopic = '$topic/response';
     final client = mqtt.client;
 
@@ -169,7 +168,7 @@ class DeviceManagerScreen extends StatelessWidget {
     await mqtt.connect();
 
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    final topic = 'esp32/$lockId/$userId';
+    final topic = 'esp32/$lockId';
     final responseTopic = '$topic/response';
     final client = mqtt.client;
 

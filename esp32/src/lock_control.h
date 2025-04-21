@@ -19,4 +19,6 @@ void openLock(LiquidCrystal_I2C &lcd);
 String getUuidFromNVS();
 String getLockId();
 
+String getFirmwareVersion();
+
 #endif

@@ -1,16 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:app/constant.dart' as constants; // Thêm alias 'constants'
-import 'package:app/constant.dart'
-as constants; // Sử dụng alias để tránh xung đột
+import 'package:app/constant.dart' as constants;
 import 'package:app/widgets/bottom_navigation_bar.dart';
 import 'change_pin_code.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
 import 'package:app/widgets/custom_appbar.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key); // Thêm const constructor
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -22,148 +21,31 @@ class _HomeScreenState extends State<HomeScreen>
   late PageController _pageController;
   late TabController _tabController;
   late List<Widget> _screens;
-  // Thêm các state
+
   String? _selectedLockId;
   Map<String, dynamic>? _currentLockData;
   List<Map<String, dynamic>> _locks = [];
-  final auth = FirebaseAuth.instance;
-  final database = FirebaseDatabase.instance.ref();
 
-// Hàm fetch dữ liệu từ Firebase
-  void _fetchLocks() {
-    final uuid = auth.currentUser?.uid;
-    if (uuid == null) return;
+  final _auth = FirebaseAuth.instance;
+  final _dbRef = FirebaseDatabase.instance.ref();
 
-    final userLocksRef = database.child('account/$uuid/lock');
-
-    userLocksRef.onValue.listen((event) {
-      final data = event.snapshot.value;
-      if (data != null && data is List) {
-        List<Map<String, dynamic>> updatedLocks = [];
-        for (var item in data) {
-          if (item != null && item is Map) {
-            updatedLocks.add({
-              'id': item['id'],
-              'name': item['name'],
-              'message': item['latest_notification']?['message'] ?? '',
-              'time': item['latest_notification']?['time'] ?? '',
-            });
-          }
-        }
-
-        setState(() {
-          _locks = updatedLocks;
-          //test
-          print('Locks: $_locks');
-          if (_selectedLockId == null && _locks.isNotEmpty) {
-            _selectedLockId = _locks.first['id'];
-            _loadLockData(_selectedLockId!);
-          }
-        });
-      } else {
-        setState(() => _locks = []); // Xử lý trường hợp data null
-      }
-    });
-  }
-
-  void _loadLockData(String lockId) {
-    FirebaseDatabase.instance.ref('lock/$lockId').onValue.listen((event) {
-      final data = event.snapshot.value;
-      if (data != null && data is Map<dynamic, dynamic>) {
-        setState(() {
-          _currentLockData = (data as Map).map(
-                (key, value) => MapEntry(key.toString(), value),
-          );
-        });
-      }
-    });
-  }
-
-// Widget Dropdown
-  Widget _buildLockDropdown() {
-    return Container(
-      margin: const EdgeInsets.only(left: 30, right: 30),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-      decoration: BoxDecoration(
-        color: Colors.white, // <-- Nền trắng hoàn toàn
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: constants.primary1, width: 1),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: Center(
-          child: DropdownButton<String>(
-            value: _selectedLockId,
-            isExpanded: true,
-            icon: Icon(Icons.keyboard_arrow_down_rounded, color: constants.primary1),
-            alignment: Alignment.center,
-            borderRadius: BorderRadius.circular(16),
-            style: const TextStyle(fontSize: 16, color: Colors.black),
-            items: _locks.map((lock) {
-              return DropdownMenuItem<String>(
-                value: lock['id'],
-                child: Center(
-                  child: Text(
-                    lock['name'],
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _selectedLockId = value);
-                _loadLockData(value);
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLockStatus() {
-    if (_currentLockData == null) return CircularProgressIndicator();
-
-    final isLocked = _currentLockData!['locking_status'] ?? true;
-    final hasDisabledPin = _currentLockData!.containsKey('pin_code_disable');
-
-    return Column(
-      children: [
-        hasDisabledPin ? _buildPinCodeWarning() : LockButton(),
-        // const SizedBox(height: 12),
-        // if (hasDisabledPin) _buildPinCodeWarning(),
-      ],
-    );
-  }
-
-  void _toggleLock() {
-    FirebaseDatabase.instance.ref('lock/$_selectedLockId/locking_status')
-        .set(!(_currentLockData!['locking_status'] ?? true));
-  }
-
-  @override
   @override
   void initState() {
     super.initState();
     _fetchLocks();
+
     _screens = [
-      Container(), // placeholder tạm, chỉ để không lỗi null
+      Container(),
       DevicesScreen(),
       ProfileScreen(),
     ];
-
-
     _pageController = PageController(initialPage: _selectedIndex);
-    _tabController =
-        TabController(length: 3, vsync: this, initialIndex: _selectedIndex);
-
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {
-          _selectedIndex = _tabController.index;
-        });
-      }
-    });
+    _tabController = TabController(length: 3, vsync: this, initialIndex: _selectedIndex)
+      ..addListener(() {
+        if (!_tabController.indexIsChanging) {
+          setState(() => _selectedIndex = _tabController.index);
+        }
+      });
   }
 
   @override
@@ -173,7 +55,65 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  @override
+  // 1) Lấy danh sách lock của user
+  void _fetchLocks() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    _dbRef.child('account/$uid/lock').onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data is List) {
+        final updated = <Map<String,dynamic>>[];
+        for (var item in data) {
+          if (item is Map) {
+            updated.add({
+              'id': item['id'],
+              'name': item['name'],
+              'message': item['latest_notification']?['message'] ?? '',
+              'time': item['latest_notification']?['time'] ?? '',
+            });
+          }
+        }
+        setState(() {
+          _locks = updated;
+          if (_selectedLockId == null && _locks.isNotEmpty) {
+            _selectedLockId = _locks.first['id'];
+            _loadLockData(_selectedLockId!);
+          }
+        });
+      } else {
+        setState(() => _locks = []);
+      }
+    });
+  }
+
+  // 2) Lắng nghe chi tiết của lock được chọn
+  void _loadLockData(String lockId) {
+    _dbRef.child('lock/$lockId').onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data is Map) {
+        setState(() {
+          _currentLockData = Map<String,dynamic>.from(data);
+        });
+      }
+    });
+  }
+
+  // 3) Ghi ngược trạng thái khóa lên Firebase
+  void _toggleLock() {
+    if (_selectedLockId == null || _currentLockData == null) return;
+    final current = _currentLockData!['locking_status'] as bool? ?? true;
+    final next = !current;
+    _dbRef
+        .child('lock/$_selectedLockId/locking_status')
+        .set(next)
+        .catchError((e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Không thể cập nhật: $e')));
+    });
+    // UI sẽ tự cập nhật khi listener onValue nhận về giá trị mới.
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,10 +122,10 @@ class _HomeScreenState extends State<HomeScreen>
         bottom: false,
         child: PageView(
           controller: _pageController,
-          onPageChanged: (index) {
+          onPageChanged: (i) {
             setState(() {
-              _selectedIndex = index;
-              _tabController.animateTo(index);
+              _selectedIndex = i;
+              _tabController.animateTo(i);
             });
           },
           physics: const BouncingScrollPhysics(),
@@ -198,15 +138,13 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
-        onItemSelected: (index) {
+        onItemSelected: (i) {
           _pageController.animateToPage(
-            index,
+            i,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
-          setState(() {
-            _selectedIndex = index;
-          });
+          setState(() => _selectedIndex = i);
         },
         items: [
           NavBarItem(icon: Icons.home, label: 'Trang Chủ'),
@@ -219,24 +157,80 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHomeContent() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           const SizedBox(height: 20),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const CustomAppBar(subtitle: 'Cho cuộc sống hiện đại'),
-            ],
+            children: [CustomAppBar(subtitle: 'Cho cuộc sống hiện đại')],
           ),
           const SizedBox(height: 40),
           _buildLockDropdown(),
           const SizedBox(height: 80),
-          _locks.isEmpty
-              ? const Text('Không có khóa nào')
-              : _buildLockStatus(),
+          if (_locks.isEmpty)
+            const Text('Không có khóa nào')
+          else
+            _buildLockStatus(),
         ],
       ),
+    );
+  }
+
+  Widget _buildLockDropdown() {
+    return Container(
+      margin: const EdgeInsets.only(left: 30, right: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: constants.primary1, width: 1),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedLockId,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: constants.primary1),
+          items: _locks
+              .map<DropdownMenuItem<String>>((lock) {
+            // Ép kiểu id và name về String
+            final id = lock['id'].toString();
+            final name = lock['name'].toString();
+            return DropdownMenuItem<String>(
+              value: id,
+              child: Center(child: Text(name)),
+            );
+          })
+              .toList(), // giờ đây là List<DropdownMenuItem<String>>
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => _selectedLockId = value);
+              _loadLockData(value);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockStatus() {
+    if (_currentLockData == null) {
+      return const CircularProgressIndicator();
+    }
+
+    final isLocked = _currentLockData!['locking_status'] as bool? ?? true;
+    final hasDisabledPin = _currentLockData!.containsKey('pin_code_disable');
+
+    return Column(
+      children: [
+        if (hasDisabledPin)
+          _buildPinCodeWarning()
+        else
+          LockButton(
+            isLocked: isLocked,
+            onToggle: _toggleLock,
+          ),
+      ],
     );
   }
 
@@ -335,60 +329,65 @@ class _HomeScreenState extends State<HomeScreen>
       },
     );
   }
-
 }
 
+/// Widget con chỉ lo render và gọi callback
 class LockButton extends StatefulWidget {
+  final bool isLocked;
+  final VoidCallback onToggle;
+
+  const LockButton({
+    Key? key,
+    required this.isLocked,
+    required this.onToggle,
+  }) : super(key: key);
+
   @override
   _LockButtonState createState() => _LockButtonState();
 }
 
 class _LockButtonState extends State<LockButton> {
-  bool isLocked = true;
-  bool isPressed = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTapDown: (_) => setState(() => isPressed = true),
-          onTapUp: (_) => setState(() => isPressed = false),
-          onTapCancel: () => setState(() => isPressed = false),
-          onTap: () {
-            setState(() {
-              isLocked = !isLocked;
-            });
-          },
+          onTapDown: (_) => setState(() => _isPressed = true),
+          onTapUp: (_) => setState(() => _isPressed = false),
+          onTapCancel: () => setState(() => _isPressed = false),
+          onTap: widget.onToggle,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             width: 200,
             height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isLocked ? constants.green : constants.blackshade,
-              boxShadow: isLocked
-                  ? (isPressed
+              color: widget.isLocked ? constants.green : constants.blackshade,
+              boxShadow: widget.isLocked
+                  ? (_isPressed
                   ? [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4,
                   offset: Offset(2, 2),
-                ),
+                )
               ]
                   : [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black38,
                   blurRadius: 10,
                   offset: Offset(4, 6),
-                ),
+                )
               ])
                   : null,
             ),
             child: Center(
               child: Image.asset(
-                isLocked ? 'assets/images/locked.png' : 'assets/images/opened.png',
+                widget.isLocked
+                    ? 'assets/images/locked.png'
+                    : 'assets/images/opened.png',
                 width: 70,
                 height: 70,
               ),
@@ -397,11 +396,8 @@ class _LockButtonState extends State<LockButton> {
         ),
         const SizedBox(height: 30),
         Text(
-          isLocked ? 'Đã khóa' : 'Đã mở khóa',
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF000000),
-          ),
+          widget.isLocked ? 'Đã khóa' : 'Đã mở khóa',
+          style: const TextStyle(fontSize: 16, color: Colors.black),
         ),
       ],
     );

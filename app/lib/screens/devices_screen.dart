@@ -71,6 +71,21 @@ class _DevicesScreenState extends State<DevicesScreen> {
             SizedBox(height: 20),
             CustomAppBar(subtitle: 'Quản lý thiết bị'),
             SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, '/wifi_setup');
+              },
+              child: Text(
+                "Thêm thiết bị",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
             ...locks.map((lock) {
               return _buildSmartLockCard(
                 name: lock['name'] ?? 'Không tên',

@@ -81,23 +81,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
 
             if (enteredPassword.length() == 4) {
                 if (enteredPassword == getPinCodeFromNVS()) {
-                    digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
-                    lcd.clear();
-                    lcd.setCursor(0, 0);
-                    lcd.print("Da mo khoa!");
-                    delay(2000);
-                    lcd.clear();
-                    preferences_lockcontrol.begin("config", false);
-                    preferences_lockcontrol.putInt("incorrectAttempts", 0);  // Reset số lần sai khi nhập đúng
-                    //cập nhật thời gian lần sai đầu tiên thành 0
-                    preferences_lockcontrol.putULong("firstWrongAttemptTime", 0);
-                    preferences_lockcontrol.end();
-                    delay(Config::relayDuration); // Giữ relay mở trong thời gian quy định
-                    digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
-                    // ghi lịch sử mở khóa vào Firebase
-                    putOpenHistory(getUuidFromNVS(), getLockId(), "mã khóa", "Ổ khóa");
-                    // xóa vô hiệu mã khóa ở firebase
-                    deletePinCodeDisable(getLockId());
+                    openLock(lcd); // Mở khóa nếu mã đúng
                     return;
                 } else {
                     lcd.clear();
@@ -176,4 +160,33 @@ String getLockId() {
     String mac = WiFi.macAddress();
     mac.replace(":", "");
     return mac;
+}
+
+void openLock(LiquidCrystal_I2C &lcd) {
+    digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
+    changeLockStatus(getLockId(), false); // cập nhật trạng thái khóa
+    // Buzzer kêu khi mở khóa thành công
+    digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
+    delay(Config::buzzerUnlockDuration);
+    digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
+    // lcd
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Da mo khoa!");
+
+    preferences_lockcontrol.begin("config", false);
+    // reset thời gian và số lần sai
+    preferences_lockcontrol.putInt("incorrectAttempts", 0);
+    preferences_lockcontrol.putULong("firstWrongAttemptTime", 0);
+    preferences_lockcontrol.end();
+    delay(Config::relayDuration - Config::buzzerUnlockDuration); // Giữ relay mở trong thời gian quy định
+    digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
+    changeLockStatus(getLockId(), true); // Cập nhật trạng thái khóa
+
+    lcd.clear();
+    
+    // ghi lịch sử mở khóa vào Firebase
+    putOpenHistory(getUuidFromNVS(), getLockId(), "mã khóa", "Ổ khóa");
+    // xóa vô hiệu mã khóa ở firebase
+    deletePinCodeDisable(getLockId());
 }

@@ -3,15 +3,17 @@
 
 #include <FirebaseESP32.h>
 #include <LiquidCrystal_I2C.h>
+#include <lock_control.h>
 
 extern FirebaseData fbdo;
 
 void firebaseSetup(LiquidCrystal_I2C& lcd);
-void firebaseLoop(const String& lockId);
+void firebaseLoop(LiquidCrystal_I2C& lcd, const String& lockId);
 void putOpenHistory(const String& uuid, const String& lockId, const String& method, const String& device);
 void putWarningHistory(const String& uuid, const String& lockId, const String& message);
 void deletePinCodeDisable(const String& lockId);
 bool checkPinCodeEnable(const String& lockId);
 void putPinCodeDisable(const String& lockId, unsigned long duration);
+void changeLockStatus(const String& lockId, bool status);
 
 #endif

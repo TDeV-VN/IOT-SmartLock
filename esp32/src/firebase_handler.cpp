@@ -44,7 +44,7 @@ void firebaseSetup(LiquidCrystal_I2C& lcd) {
   lcd.clear();
 }
 
-void firebaseLoop(const String& lockId) {
+void firebaseLoop(LiquidCrystal_I2C& lcd, const String& lockId) {
   static unsigned long lastRun = 0;
   unsigned long interval = 5000;
   if (millis() - lastRun < interval) return;
@@ -59,19 +59,7 @@ void firebaseLoop(const String& lockId) {
 
     if (!locking && !isUnlocking) {
       isUnlocking = true;
-
-      Serial.println("Mở khóa (tắt relay) trong 5s...");
-      digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
-      delay(Config::relayDuration);
-      digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
-      Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
-
-      if (Firebase.setBool(fbdo, basePath + "/locking_status", true)) {
-        Serial.println("Đã cập nhật locking_status = true");
-      } else {
-        Serial.printf("Lỗi khi cập nhật Firebase: %s\n", fbdo.errorReason().c_str());
-      }
-
+      openLock(lcd); // mở khóa
       isUnlocking = false;
     }
   } else {
@@ -215,3 +203,11 @@ bool checkPinCodeEnable(const String& lockId) {
   return false;
 }
 
+void changeLockStatus(const String& lockId, bool status) {
+  String path = "/lock/" + lockId + "/locking_status";
+  if (Firebase.setBool(fbdo, path, status)) {
+    Serial.printf("Đã cập nhật trạng thái khóa: %s\n", status ? "true" : "false");
+  } else {
+    Serial.printf("Lỗi khi cập nhật trạng thái khóa: %s\n", fbdo.errorReason().c_str());
+  }
+}

@@ -76,7 +76,6 @@ void loop() {
   extern WebServer server;
   server.handleClient();
 
-  // checkPinCodeEnable(lockId);
   char key = keypad.getKey();
   if (key) {
     Serial.println("Key pressed: " + String(key));
@@ -91,7 +90,7 @@ void loop() {
 
   // Gọi firebase định kỳ
   if (millis() - lastFirebaseUpdate > FIREBASE_INTERVAL) {
-    firebaseLoop(lockId);
+    firebaseLoop(lcd, lockId);
     lastFirebaseUpdate = millis();
   }
 }

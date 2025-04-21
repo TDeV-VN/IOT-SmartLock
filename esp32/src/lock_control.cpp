@@ -3,9 +3,9 @@
 #include <gpo_config.h>
 #include "firebase_handler.h"
 #include "lock_control.h"
+#include <config.h>
 
 Preferences preferences_lockcontrol;
-// int incorrectAttempts; // Số lần nhập sai
 String enteredPassword = ""; // Mã khóa nhập vào
 int incorrectAttempts = 0; // Số lần nhập sai
 
@@ -13,14 +13,10 @@ int incorrectAttempts = 0; // Số lần nhập sai
 String getPinCodeFromNVS() {
     Preferences preferences;
     preferences.begin("config", true); // Mở namespace "config" ở chế độ chỉ đọc
-    String pinCode = preferences.getString("pinCode", "null"); // Lấy mã khóa, mặc định là "1234" nếu không tồn tại
+    String pinCode = preferences.getString("pinCode", "null"); // Lấy mã khóa
     preferences.end();
     return pinCode;
 }
-
-// Cấu hình timeout
-const unsigned long timeoutDuration = 60000; // 1 phút (60,000 ms)
-const unsigned long wrongAttemptResetDuration = 1800000; // 30 phút (1,800,000 ms)
 
 // Khai báo thời gian sai cuối cùng và thời gian nhấn phím cuối cùng
 static unsigned long firstWrongAttemptTime = 0; // Biến lưu thời gian của lần thử sai đầu tiên
@@ -56,7 +52,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
         unsigned long currentMillis = millis();
 
         // Thoát nếu quá timeout
-        if (currentMillis - lastKeypressTime > timeoutDuration) {
+        if (currentMillis - lastKeypressTime > Config::timeoutDuration) {
             lcd.clear();
             enteredPassword = "";
             return;
@@ -96,12 +92,12 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                     //cập nhật thời gian lần sai đầu tiên thành 0
                     preferences_lockcontrol.putULong("firstWrongAttemptTime", 0);
                     preferences_lockcontrol.end();
-                    delay(3000); // Giữ relay mở trong 5 giây
+                    delay(Config::relayDuration); // Giữ relay mở trong thời gian quy định
                     digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
                     // ghi lịch sử mở khóa vào Firebase
                     putOpenHistory(getUuidFromNVS(), getLockId(), "mã khóa", "Ổ khóa");
-                
-
+                    // xóa vô hiệu mã khóa ở firebase
+                    deletePinCodeDisable(getLockId());
                     return;
                 } else {
                     lcd.clear();
@@ -123,8 +119,8 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
 
                     preferences_lockcontrol.end();
 
-                    // Kiểm tra nếu sai 5 lần liên tiếp
-                    if (incorrectAttempts >= 5) {
+                    // Kiểm tra số lần sai liên tiếp
+                    if (incorrectAttempts >= Config::maxWrongAttempts) {
                         lcd.clear();
                         lcd.setCursor(0, 0);
                         lcd.print("Vo hieu hoa");
@@ -141,12 +137,12 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                         preferences_lockcontrol.end();
 
                         // Ghi vào Firebase để vô hiệu hóa mã khóa trong 30 phút
-                        putPinCodeDisable(getLockId(), 1800); // 30 phút = 1800 giây
+                        putPinCodeDisable(getLockId(), Config::pinCodeDisableDuration);
 
                         Serial.println("Vô hiệu hóa mã khóa");
 
                         unsigned long buzzerStart = millis();
-                        while (millis() - buzzerStart < 180000) { // 3 phút = 180000ms
+                        while (millis() - buzzerStart < Config::buzzerDuration) { 
                             digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
                             delay(1000);  // kêu 1 giây
                             digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);

@@ -3,6 +3,7 @@
 #include "firebase_handler.h"
 #include "gpo_config.h"
 #include <time.h>
+#include <config.h>
 
 #define FIREBASE_HOST "https://slock-bb631-default-rtdb.firebaseio.com/"
 #define FIREBASE_AUTH "AIzaSyBUmpTr3r3gfn7erG-KYPMoUXXbseVPOSs"
@@ -51,6 +52,7 @@ void firebaseLoop(const String& lockId) {
 
   String basePath = "/lock/" + lockId;
 
+  // theo dõi đồng bộ trạng thái khóa
   if (Firebase.getBool(fbdo, basePath + "/locking_status")) {
     bool locking = fbdo.boolData();
     Serial.printf("[%s] locking_status = %s\n", lockId.c_str(), locking ? "true" : "false");
@@ -60,7 +62,7 @@ void firebaseLoop(const String& lockId) {
 
       Serial.println("Mở khóa (tắt relay) trong 5s...");
       digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
-      delay(5000);
+      delay(Config::relayDuration);
       digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
       Serial.println("Khóa lại (bật relay). Cập nhật Firebase...");
 
@@ -76,6 +78,7 @@ void firebaseLoop(const String& lockId) {
     Serial.printf("Lỗi khi đọc locking_status: %s\n", fbdo.errorReason().c_str());
   }
 
+  // theo dõi đồng bộ pin code
   if (Firebase.getString(fbdo, basePath + "/pin_code")) {
     String newPin = fbdo.stringData();
     if (newPin != currentPinCode) {

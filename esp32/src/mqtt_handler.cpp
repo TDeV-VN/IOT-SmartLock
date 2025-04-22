@@ -158,25 +158,16 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
       int firmwareCode = http.GET();
   
       if (firmwareCode == HTTP_CODE_OK) {
-          WiFiClient *clientWifi = http.getStreamPtr();
+          WiFiClient *client = http.getStreamPtr();
           int contentLength = http.getSize();
   
           if (Update.begin(contentLength)) {
-            size_t written = 0;
-            uint8_t buff[128] = { 0 };
-            WiFiClient *clientWifi = http.getStreamPtr();
-        
-            while (clientWifi->available()) {
-                size_t len = clientWifi->readBytes(buff, sizeof(buff));
-                if (len > 0) {
-                    Update.write(buff, len);
-                    written += len;
-                }
-            }
-        
-            if (written == contentLength && Update.end(true)) {
-                isUpdate = true;
-            }
+              size_t written = Update.writeStream(*client);
+              if (written == contentLength) {
+                  if (Update.end(true)) {
+                      isUpdate = true;
+                  }
+              }
           }
       }
 
@@ -208,24 +199,22 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
   } else {
       // Gửi kết quả lại
       if (client.connected()) {
-        StaticJsonDocument<256> doc;
-        doc["updateFirmware"] = "success";
-        char buffer[256];
-        size_t len = serializeJson(doc, buffer);
-        String topic = "esp32/" + getLockId() + "/response";
-    
-        client.publish(topic.c_str(), (const uint8_t*)buffer, len, false);
-        client.publish(topic.c_str(), nullptr, 0, true);
-    
-        // Đảm bảo gửi xong
-        unsigned long start = millis();
-        while (millis() - start < 3000) {
-            client.loop();
-            delay(10);
-        }
-        delay(1000); // buffer flush
-      }
+          StaticJsonDocument<256> doc;
+          doc["updateFirmware"] = "success";
+          char buffer[256];
+          size_t len = serializeJson(doc, buffer);
+          String topic = "esp32/" + getLockId() + "/response";
+          client.publish(topic.c_str(), (const uint8_t*)buffer, len, false);
+          // Xóa retained message cũ tại topic
+          client.publish(topic.c_str(), nullptr, 0, true);
 
+          // Đảm bảo MQTT đã gửi trước khi restart
+          delay(1000); // Đợi một thời gian ngắn trước khi restart
+          client.loop(); // Xử lý MQTT loop để đảm bảo gửi thông điệp
+      } else {
+          Serial.println("MQTT client not connected. Cannot publish message.");
+          client.loop(); // Xử lý MQTT loop để đảm bảo gửi thông điệp
+      }
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Cap nhat");
@@ -235,31 +224,6 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Khoi dong lai...");
-
-      preferences.begin("config", false);
-      preferences.putInt("updateFirmware", 1); // đánh dấu đã cập nhật firmware
-      preferences.end();
-      delay(2000); // buffer flush
-
       ESP.restart(); //  Khởi động lại thiết bị
   }
-}
-
-void mqttSendRestart() {
-  if (!client.connected()) {
-      Serial.println("MQTT not connected, attempting reconnect...");
-      String lockId = getLockId();
-      LiquidCrystal_I2C dummyLcd(0x27, 16, 2); // nếu cần dummy lcd
-      reconnect(lockId, dummyLcd);
-  }
-
-  StaticJsonDocument<256> doc;
-  doc["updateFirmware"] = "success";
-  char buffer[256];
-  size_t len = serializeJson(doc, buffer);
-  String topic = "esp32/" + getLockId() + "/response";
-
-  client.publish(topic.c_str(), (const uint8_t*)buffer, len, false);
-  client.loop();
-  delay(500);
 }

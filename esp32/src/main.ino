@@ -48,20 +48,20 @@ void setup() {
   lcd.setCursor(0, 1);
   delay(1000);
 
-  // connectwifi();
+  connectwifi();
 
-  lcd.print("Connecting WiFi...");
-  //Kết nối WiFi
-  WiFi.begin("Tiến", "11012004Aa");
-  // WiFi.begin("Wokwi-GUEST", "", 6);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Connected to WiFi");
-  delay(1000);
-  lcd.clear();
+  // lcd.print("Connecting WiFi...");
+  // //Kết nối WiFi
+  // WiFi.begin("Tiến", "11012004Aa");
+  // // WiFi.begin("Wokwi-GUEST", "", 6);
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  // }
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
+  // lcd.print("Connected to WiFi");
+  // delay(1000);
+  // lcd.clear();
 
   // Cấu hình NTP
   configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov"); // GMT+7 (7 * 3600 giây)

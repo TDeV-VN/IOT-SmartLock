@@ -96,25 +96,41 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
   ));
 
   Future<void> _fetchWifiList() async {
-    if (_isDisposed) return;
-    setState(() => _isLoadingWifiList = true);
+    setState(() {
+      _isLoadingWifiList = true;
+    });
 
     try {
-      final response = await _dio.get('http://192.168.4.1/scan-wifi/');
+      // Yêu cầu quyền vị trí trước khi quét
+      var locationStatus = await Permission.locationWhenInUse.request();
+      if (!locationStatus.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cần cấp quyền vị trí để quét WiFi')),
+        );
+        return;
+      }
 
-      if (response.statusCode == 200 && !_isDisposed) {
-        _retryCount = 0;
-        List<dynamic> ssids = response.data;
-        setState(() => _wifiList = ssids.cast<String>());
-      } else if (!_isDisposed) {
-        _handleRetry('Lỗi HTTP (dio): ${response.statusCode}');
+      List<WifiNetwork> networks = await WiFiForIoTPlugin.loadWifiList();
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _wifiList = networks.map((e) => e.ssid ?? '').where((e) => e.isNotEmpty).toList();
+        });
       }
     } catch (e) {
-      if (!_isDisposed) _handleRetry('Lỗi kết nối (dio): ${e.toString()}');
+      if (!_isDisposed && mounted) {
+        print('Lỗi khi quét WiFi: $e');
+        _handleRetry('Lỗi khi quét WiFi');
+      }
     } finally {
-      if (!_isDisposed) setState(() => _isLoadingWifiList = false);
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoadingWifiList = false;
+        });
+      }
     }
   }
+
+
 
   void _handleRetry(String errorMessage) {
     print('$errorMessage - Thử lại (${_retryCount + 1}/$_maxRetries)');
@@ -150,7 +166,7 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    if (_isDisposed) return; // Kiểm tra disposed
+    if (_isDisposed) return; // Kiểm tra widget đã bị hủy hay chưa
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -171,14 +187,14 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
         Uri.parse('http://192.168.4.1/connect-wifi/'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
-          'ssid': _selectedSSID!,
-          'password': _password,
-          'uuid': user.uid,
+          'ssid': _selectedSSID!,  // Mạng WiFi được chọn
+          'password': _password,   // Mật khẩu WiFi
+          'uuid': user.uid,        // UUID từ Firebase Auth
         },
-      ).timeout(Duration(seconds: 15));
+      ).timeout(Duration(seconds: 10000));
 
       if (!_isDisposed) {
-        Navigator.pop(context);
+        Navigator.pop(context); // Đóng loading dialog
         if (response.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Kết nối thành công!'))
@@ -191,7 +207,7 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
       }
     } catch (e) {
       if (!_isDisposed) {
-        Navigator.pop(context);
+        Navigator.pop(context); // Đóng loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Lỗi kết nối: ${e.toString()}'))
         );

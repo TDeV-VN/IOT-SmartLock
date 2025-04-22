@@ -53,6 +53,10 @@ void handleShutdownAP() {
 
 
 void handleConnectWifi() {
+  // Thêm header CORS
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "POST");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
   if (!server.hasArg("ssid") || !server.hasArg("password") || !server.hasArg("uuid")) {
     server.send(400, "text/plain", "Missing ssid or password");
     return;

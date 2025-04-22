@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:app/screens/show_set_share_code_bottom_sheet.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -171,116 +172,27 @@ class DeviceManagerScreen extends StatelessWidget {
     final topic = 'esp32/$lockId';
     final responseTopic = '$topic/response';
     final client = mqtt.client;
-
-    client.subscribe(responseTopic, MqttQos.atMostOnce);
-
-    late final StreamSubscription<List<MqttReceivedMessage<MqttMessage>>> subscription;
-
-    // Hiển thị dialog cập nhật firmware
+    mqtt.publishMessage(topic, 'UpdateFirmware');
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => _buildDialog(
+      builder: (_) => _buildDialog(
         context: context,
-        title: 'Cập nhật Firmware',
-        contentWidget: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor),
+        title: 'Thành công',
+        content: 'Cập nhật firmware bắt đầu!\nThiết bị sẽ tự động khởi động lại.',
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'ĐÓNG',
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 16),
-            Text(
-              'Đang tải và cài đặt phiên bản mới...',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Vui lòng không tắt thiết bị',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-
-    subscription = client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final recMess = c[0].payload as MqttPublishMessage;
-      final payload = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-      final topicReceived = c[0].topic;
-
-      if (topicReceived == responseTopic) {
-        final data = jsonDecode(payload);
-        final updateFirmware = data['updateFirmware'];
-
-        Navigator.pop(context); // Đóng dialog loading
-
-        if (updateFirmware == 'success') {
-          showDialog(
-            context: context,
-            builder: (_) => _buildDialog(
-              context: context,
-              title: 'Thành công',
-              content: 'Cập nhật firmware thành công!\nThiết bị sẽ tự động khởi động lại.',
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'ĐÓNG',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          showDialog(
-            context: context,
-            builder: (_) => _buildDialog(
-              context: context,
-              title: 'Thất bại',
-              content: 'Cập nhật firmware không thành công.\nVui lòng thử lại sau.',
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'ĐÓNG',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    this.updateFirmware(context, lockId);
-                  },
-                  child: Text(
-                    'THỬ LẠI',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        subscription.cancel();
-        mqtt.disconnect();
-      }
-    });
-
-    mqtt.publishMessage(topic, 'UpdateFirmware'); // Sửa thành UpdateFirmware thay vì CheckFirmware
   }
 
   @override
@@ -372,6 +284,21 @@ class DeviceManagerScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text('Cập nhật firmware'),
+              ),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                showSetShareCodeBottomSheet(context, lockId!);
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('Chia sẻ thiết bị'),
               ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(

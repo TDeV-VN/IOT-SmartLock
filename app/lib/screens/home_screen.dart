@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:app/constant.dart' as constants;
 import 'package:app/widgets/bottom_navigation_bar.dart';
+import '../services/mqtt_handler.dart';
 import 'change_pin_code.dart';
 import 'devices_screen.dart';
 import 'profile_screen.dart';
@@ -34,18 +35,17 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     _fetchLocks();
 
-    _screens = [
-      Container(),
-      DevicesScreen(),
-      ProfileScreen(),
-    ];
+    _screens = [Container(), DevicesScreen(), ProfileScreen()];
     _pageController = PageController(initialPage: _selectedIndex);
-    _tabController = TabController(length: 3, vsync: this, initialIndex: _selectedIndex)
-      ..addListener(() {
-        if (!_tabController.indexIsChanging) {
-          setState(() => _selectedIndex = _tabController.index);
-        }
-      });
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: _selectedIndex,
+    )..addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() => _selectedIndex = _tabController.index);
+      }
+    });
   }
 
   @override
@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen>
     _dbRef.child('account/$uid/lock').onValue.listen((event) {
       final data = event.snapshot.value;
       if (data is List) {
-        final updated = <Map<String,dynamic>>[];
+        final updated = <Map<String, dynamic>>[];
         for (var item in data) {
           if (item is Map) {
             updated.add({
@@ -93,24 +93,40 @@ class _HomeScreenState extends State<HomeScreen>
       final data = event.snapshot.value;
       if (data is Map) {
         setState(() {
-          _currentLockData = Map<String,dynamic>.from(data);
+          _currentLockData = Map<String, dynamic>.from(data);
         });
       }
     });
   }
 
-  // 3) Ghi ngược trạng thái khóa lên Firebase
+  void openLock(String lockId) async {
+    final mqtt = MQTTService();
+    await mqtt.connect();
+    final topic = 'esp32/$lockId';
+    final client = mqtt.client;
+    mqtt.publishMessage(topic, 'Open');
+
+    // final mqtt = MQTTService();
+    // await mqtt.connect();
+    // final topic = 'esp32/$lockId';
+    // mqtt.publishMessage(topic, '', retain: true);
+  }
+
+  void offBuzzer(String lockId) async {
+    final mqtt = MQTTService();
+    await mqtt.connect();
+    final topic = 'esp32/$lockId';
+    mqtt.publishMessage(topic, 'TurnOffBuzzer');
+
+    // Xóa dữ liệu pin_code_disable
+    FirebaseDatabase.instance
+        .ref('lock/$_selectedLockId/pin_code_disable')
+        .remove();
+  }
+
   void _toggleLock() {
-    if (_selectedLockId == null || _currentLockData == null) return;
-    final current = _currentLockData!['locking_status'] as bool? ?? true;
-    final next = !current;
-    _dbRef
-        .child('lock/$_selectedLockId/locking_status')
-        .set(next)
-        .catchError((e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Không thể cập nhật: $e')));
-    });
+    if (_currentLockData == null) return;
+    openLock(_selectedLockId!);
     // UI sẽ tự cập nhật khi listener onValue nhận về giá trị mới.
   }
 
@@ -129,11 +145,7 @@ class _HomeScreenState extends State<HomeScreen>
             });
           },
           physics: const BouncingScrollPhysics(),
-          children: [
-            _buildHomeContent(),
-            DevicesScreen(),
-            ProfileScreen(),
-          ],
+          children: [_buildHomeContent(), DevicesScreen(), ProfileScreen()],
         ),
       ),
       bottomNavigationBar: CustomBottomNavBar(
@@ -190,18 +202,20 @@ class _HomeScreenState extends State<HomeScreen>
         child: DropdownButton<String>(
           value: _selectedLockId,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: constants.primary1),
-          items: _locks
-              .map<DropdownMenuItem<String>>((lock) {
-            // Ép kiểu id và name về String
-            final id = lock['id'].toString();
-            final name = lock['name'].toString();
-            return DropdownMenuItem<String>(
-              value: id,
-              child: Center(child: Text(name)),
-            );
-          })
-              .toList(), // giờ đây là List<DropdownMenuItem<String>>
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: constants.primary1,
+          ),
+          items:
+              _locks.map<DropdownMenuItem<String>>((lock) {
+                // Ép kiểu id và name về String
+                final id = lock['id'].toString();
+                final name = lock['name'].toString();
+                return DropdownMenuItem<String>(
+                  value: id,
+                  child: Center(child: Text(name)),
+                );
+              }).toList(), // giờ đây là List<DropdownMenuItem<String>>
           onChanged: (value) {
             if (value != null) {
               setState(() => _selectedLockId = value);
@@ -225,11 +239,10 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         if (hasDisabledPin)
           _buildPinCodeWarning()
+        else if (isLocked)
+          LockButton(isLocked: isLocked, onToggle: _toggleLock)
         else
-          LockButton(
-            isLocked: isLocked,
-            onToggle: _toggleLock,
-          ),
+          LockButton(isLocked: isLocked, onToggle: () {}),
       ],
     );
   }
@@ -237,14 +250,18 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildPinCodeWarning() {
     final rawPinData = _currentLockData!['pin_code_disable'];
     final pinData = (rawPinData as Map).map(
-          (key, value) => MapEntry(key.toString(), value),
+      (key, value) => MapEntry(key.toString(), value),
     );
     final expiration = int.parse(pinData['expiration_time'].toString());
 
     return StreamBuilder<DateTime>(
-      stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+      stream: Stream.periodic(
+        const Duration(seconds: 1),
+        (_) => DateTime.now(),
+      ),
       builder: (context, snapshot) {
-        final remaining = expiration - DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final remaining =
+            expiration - DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
         if (remaining <= 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -299,7 +316,10 @@ class _HomeScreenState extends State<HomeScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -312,16 +332,10 @@ class _HomeScreenState extends State<HomeScreen>
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
-                  // Xóa dữ liệu pin_code_disable
-                  FirebaseDatabase.instance
-                      .ref('lock/$_selectedLockId/pin_code_disable')
-                      .remove();
-                  // TODO: Xử lý tắt chuông
+                  // xoá dữ liệu ở khóa thông qua mqtt
+                  offBuzzer(_selectedLockId!);
                 },
-                child: const Text(
-                  "Bỏ qua",
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: const Text("Bỏ qua", style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
@@ -336,11 +350,8 @@ class LockButton extends StatefulWidget {
   final bool isLocked;
   final VoidCallback onToggle;
 
-  const LockButton({
-    Key? key,
-    required this.isLocked,
-    required this.onToggle,
-  }) : super(key: key);
+  const LockButton({Key? key, required this.isLocked, required this.onToggle})
+    : super(key: key);
 
   @override
   _LockButtonState createState() => _LockButtonState();
@@ -365,23 +376,24 @@ class _LockButtonState extends State<LockButton> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: widget.isLocked ? constants.green : constants.blackshade,
-              boxShadow: widget.isLocked
-                  ? (_isPressed
-                  ? [
-                const BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(2, 2),
-                )
-              ]
-                  : [
-                const BoxShadow(
-                  color: Colors.black38,
-                  blurRadius: 10,
-                  offset: Offset(4, 6),
-                )
-              ])
-                  : null,
+              boxShadow:
+                  widget.isLocked
+                      ? (_isPressed
+                          ? [
+                            const BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                              offset: Offset(2, 2),
+                            ),
+                          ]
+                          : [
+                            const BoxShadow(
+                              color: Colors.black38,
+                              blurRadius: 10,
+                              offset: Offset(4, 6),
+                            ),
+                          ])
+                      : null,
             ),
             child: Center(
               child: Image.asset(

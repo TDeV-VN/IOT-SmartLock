@@ -171,9 +171,6 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
                 if (len > 0) {
                     Update.write(buff, len);
                     written += len;
-        
-                    // Thêm dòng này để duy trì MQTT connection
-                    client.loop();
                 }
             }
         

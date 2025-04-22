@@ -40,10 +40,16 @@ class MQTTService {
     client.disconnect();
   }
 
-  void publishMessage(String topic, String message) {
+  void publishMessage(String topic, String message, {bool retain = false}) {
     final builder = MqttClientPayloadBuilder();
     builder.addString(message);
-    client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+
+    client.publishMessage(
+      topic,
+      MqttQos.atLeastOnce,
+      builder.payload!,
+      retain: retain,
+    );
   }
 
   void Function(String)? onMessageReceived;

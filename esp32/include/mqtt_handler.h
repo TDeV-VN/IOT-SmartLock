@@ -14,3 +14,4 @@ void mqttLoop(String lockId, LiquidCrystal_I2C &lcd);
 void mqttSend(String topic, String message);
 bool checkFirmware(LiquidCrystal_I2C &lcd);
 void updateFirmware(LiquidCrystal_I2C &lcd);
+void checkFirmwareResultAfterBoot();

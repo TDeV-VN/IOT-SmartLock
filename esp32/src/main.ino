@@ -3,12 +3,14 @@
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
-#include "firebase_handler.h"
-#include <HTTPClient.h>            
+#include "firebase_handler.h"          
 #include <gpo_config.h>
 #include "lock_control.h"
 #include "WebServerHandler.h"
 #include "mqtt_handler.h"
+#include <Preferences.h>
+
+extern Preferences preferences;
 
 #define FIRMWARE_VERSION getFirmwareVersion()
 String lockId = getLockId();
@@ -29,6 +31,12 @@ const unsigned long FIREBASE_INTERVAL = 1000;
 void setup() {
   Serial.begin(115200);
 
+  // Đảm bảo dữ liệu được khôi phục từ NVS
+  preferences.begin("PinCodeEnable", true); // mở ở chế độ read-only
+  int a = preferences.getInt("incorrectAttempts", 0);
+  long b = preferences.getULong("firstWrongAttemptTime", 0);
+  preferences.end();
+
   // Khởi động LCD
   lcd.init();
   lcd.backlight();
@@ -38,6 +46,7 @@ void setup() {
   digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH);
 
   pinMode(GPO_CONFIG::BUZZER_PIN, OUTPUT);
+  digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -46,34 +55,47 @@ void setup() {
   delay(1000);
 
   // // test xóa nvs
-  // Preferences preferences_2;
-  // preferences_2.begin("config", false);
-  // preferences_2.clear();
-  // preferences_2.end();
+  // preferences.begin("config", false);
+  // preferences.clear();
+  // preferences.end();
 
-  connectwifi();
+  // connectwifi();
 
-  // lcd.print("Connecting WiFi...");
-  // // Kết nối WiFi
-  // // WiFi.begin("Tiến", "11012004Aa");
-  // // WiFi.begin("Wokwi-GUEST", "", 6);
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(500);
-  // }
-  // lcd.clear();
-  // lcd.setCursor(0, 0);
-  // lcd.print("Connected to WiFi");
-  // delay(1000);
-  // lcd.clear();
+  lcd.print("Connecting WiFi...");
+  // Kết nối WiFi
+  WiFi.begin("Tiến", "11012004Aa");
+  // WiFi.begin("Wokwi-GUEST", "", 6);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connected to WiFi");
+  delay(1000);
+  lcd.clear();
 
   // Khởi động Firebase
   firebaseSetup(lcd);
 
   // Khởi động MQTT
   mqttSetup(lcd);
+
+  // gởi mqtt
+  void mqttSendRestart();
 }
 
 void loop() {
+  // nếu mất wifi thì kết nối lại từ NVS
+  // if (WiFi.status() != WL_CONNECTED) {
+  //   preferences.begin("config", false);
+  //   String ssid = preferences.getString("wifiSSID", "");
+  //   String password = preferences.getString("wifiPassword", "");
+  //   preferences.end();
+    
+  //   WiFi.begin(ssid.c_str(), password.c_str());
+  //   delay(500);
+  // }
+
   mqttLoop(lockId, lcd); // Gọi hàm mqttLoop để xử lý MQTT
 
   // tiếp tục lắng nghe đẻ nhận tín hiệu tắt AP
@@ -84,7 +106,9 @@ void loop() {
   if (key) {
     if (key == '*') {
       handleLockControl(keypad, lcd);
-    }
+    } else if (key == '#') {
+      resetLock(); // gọi hàm reset khóa
+    } 
   }
 
   // Gọi firebase định kỳ
@@ -94,17 +118,35 @@ void loop() {
   }
 }
 
+void resetLock() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Resetting lock...");
+  delay(2000);
+  lcd.clear();
+  
+  // xóa dữ liệu trong NVS
+  preferences.begin("config", false);
+  preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
+  preferences.end();
+  preferences.begin("PinCodeEnable", false);
+  preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
+  preferences.end();
+
+  // khởi động lại thiết bị
+  ESP.restart();
+}
+
 void connectwifi() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Connecting to WiFi...");
 
   // lấy thông tin wifi từ NVS
-  Preferences preferences_1;
-  preferences_1.begin("config", false);
-  String ssid = preferences_1.getString("wifiSSID", "");
-  String password = preferences_1.getString("wifiPassword", "");
-  preferences_1.end();
+  preferences.begin("config", false);
+  String ssid = preferences.getString("wifiSSID", "");
+  String password = preferences.getString("wifiPassword", "");
+  preferences.end();
 
   // thử kết nối wifi với thông tin đã lưu
   lcd.clear();
@@ -143,31 +185,3 @@ void connectwifi() {
   lcd.clear();
 }
 
-void sendLockNotification(const String& topic, const String& title, const String& message) {
-  if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("[Notification] WiFi not connected!");
-      return;
-  }
-
-  HTTPClient http;
-  http.begin("https://iot-smartlock-firmware.onrender.com/send-topic");
-  http.addHeader("Content-Type", "application/json");
-
-  DynamicJsonDocument doc(256);
-  doc["topic"] = topic;
-  doc["title"] = title;
-  doc["body"] = message;
-
-  String payload;
-  serializeJson(doc, payload);
-
-  int httpCode = http.POST(payload);
-  
-  if (httpCode > 0) {
-      Serial.printf("[Notification] Sent! Code: %d\n", httpCode);
-  } else {
-      Serial.printf("[Notification] Failed! Error: %s\n", http.errorToString(httpCode).c_str());
-  }
-
-  http.end();
-}

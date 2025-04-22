@@ -4,6 +4,8 @@
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
 #include <Preferences.h>
+#include <HTTPClient.h>  
+#include <ArduinoJson.h>
 
 extern Preferences preferences;
 extern int incorrectAttempts;
@@ -20,5 +22,6 @@ String getUuidFromNVS();
 String getLockId();
 
 String getFirmwareVersion();
+void sendLockNotification(const String& topic, const String& title, const String& message);
 
 #endif

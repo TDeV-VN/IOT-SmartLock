@@ -72,12 +72,11 @@ jobs:
 
       - name: Notify via FCM Topic
         run: |
+          version=${GITHUB_REF#refs/tags/}
           curl -X POST https://iot-smartlock-firmware.onrender.com/send-topic \
             -H "Content-Type: application/json" \
-            -d '{
-              "topic": "NewFirmware",
-              "title": "Cập nhật firmware",
-              "body": "Đã có bản cập nhật firmware ${{ env.version }} cho khóa cửa"
-            }'
-        env:
-          version: ${GITHUB_REF#refs/tags/}
+            -d "{
+              \"topic\": \"NewFirmware\",
+              \"title\": \"Cập nhật firmware\",
+              \"body\": \"Đã có bản cập nhật firmware ${version} cho khóa cửa\"
+            }"

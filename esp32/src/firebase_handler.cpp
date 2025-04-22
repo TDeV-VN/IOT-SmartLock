@@ -9,7 +9,7 @@
 #define FIREBASE_AUTH "AIzaSyBUmpTr3r3gfn7erG-KYPMoUXXbseVPOSs"
 
 FirebaseData fbdo;
-Preferences preferences_firebase;
+extern Preferences preferences;
 
 bool isUnlocking = false;
 String currentPinCode = "";
@@ -28,8 +28,8 @@ void firebaseSetup(LiquidCrystal_I2C& lcd) {
   pinMode(GPO_CONFIG::RELAY_PIN, OUTPUT);
   digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); 
 
-  preferences_firebase.begin("config", false);
-  currentPinCode = preferences_firebase.getString("pinCode", "");
+  preferences.begin("config", false);
+  currentPinCode = preferences.getString("pinCode", "");
   Serial.printf("PIN code hiện tại từ NVS: %s\n", currentPinCode.c_str());
 
   configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
@@ -71,7 +71,7 @@ void firebaseLoop(LiquidCrystal_I2C& lcd, const String& lockId) {
     String newPin = fbdo.stringData();
     if (newPin != currentPinCode) {
       Serial.printf("Phát hiện PIN code mới từ Firebase: %s\n", newPin.c_str());
-      preferences_firebase.putString("pinCode", newPin);
+      preferences.putString("pinCode", newPin);
       currentPinCode = newPin;
       Serial.println("Đã cập nhật pinCode vào NVS.");
     }

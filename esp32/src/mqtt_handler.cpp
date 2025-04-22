@@ -1,6 +1,6 @@
 #include <mqtt_handler.h>
 
-Preferences preferences_mqtt;
+extern Preferences preferences;
 
 bool isMqttFirstTime = true; // Biến để kiểm tra lần đầu tiên khởi động MQTT
 
@@ -59,10 +59,24 @@ void callback(char* topic, byte* payload, unsigned int length, LiquidCrystal_I2C
   String message = String((char*)payload).substring(0, length);
   // xửa lý yêu cầu check firmware
   if (message == "CheckFirmware") {
+    Serial.println("CheckFirmware request received.");
     checkFirmware(lcd);
   } else if (message == "UpdateFirmware") { // xử lý yêu cầu update firmware
+    Serial.println("UpdateFirmware request received.");
     updateFirmware(lcd);
-  }
+  } else if (message == "Open") { // xử lý yêu cầu mở khóa
+    Serial.println("Open request received.");
+    openLock(lcd); // mở khóa
+  } else if (message == "TurnOffBuzzer") { // xử lý yêu cầu tắt buzzer, bỏ qua cảnh báo
+    Serial.println("TurnOffBuzzer request received.");
+    digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW); // tắt buzzer
+    preferences.begin("PinCodeEnable", false);
+    preferences.remove("incorrectAttempts");
+    preferences.remove("firstWrongAttemptTime");
+    preferences.end();
+    // xóa retained message cũ tại topic
+    // client.publish(topic, nullptr, 0, true);
+  } 
   
 }
 
@@ -76,6 +90,7 @@ void mqttSetup(LiquidCrystal_I2C &lcd) {
 
 void mqttLoop(String lockId, LiquidCrystal_I2C &lcd) {
   if (!client.connected()) {
+    Serial.println("MQTT client not connected. Attempting to reconnect...");
     reconnect(lockId, lcd);
   }
   client.loop();
@@ -157,11 +172,11 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
       int firmwareCode = http.GET();
   
       if (firmwareCode == HTTP_CODE_OK) {
-          WiFiClient *client = http.getStreamPtr();
+          WiFiClient *clientWifi = http.getStreamPtr();
           int contentLength = http.getSize();
   
           if (Update.begin(contentLength)) {
-              size_t written = Update.writeStream(*client);
+              size_t written = Update.writeStream(*clientWifi);
               if (written == contentLength) {
                   if (Update.end(true)) {
                       isUpdate = true;
@@ -227,3 +242,16 @@ void updateFirmware(LiquidCrystal_I2C &lcd) {
   }
 }
 
+void mqttSendRestart() {
+    if (client.connected()) {
+      StaticJsonDocument<256> doc;
+      doc["updateFirmware"] = "success";
+      char buffer[256];
+      size_t len = serializeJson(doc, buffer);
+      String topic = "esp32/" + getLockId() + "/response";
+      client.publish(topic.c_str(), (const uint8_t*)buffer, len, false);
+    } else {
+        client.loop(); // Xử lý MQTT loop để đảm bảo gửi thông điệp
+        mqttSendRestart(); // Gọi lại hàm nếu chưa kết nối
+    }
+}

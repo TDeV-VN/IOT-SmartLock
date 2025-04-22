@@ -5,13 +5,12 @@
 #include "lock_control.h"
 #include <config.h>
 
-Preferences preferences_lockcontrol;
+Preferences preferences;
 String enteredPassword = ""; // Mã khóa nhập vào
 int incorrectAttempts = 0; // Số lần nhập sai
 
 // Mã khóa đúng
 String getPinCodeFromNVS() {
-    Preferences preferences;
     preferences.begin("config", true); // Mở namespace "config" ở chế độ chỉ đọc
     String pinCode = preferences.getString("pinCode", "null"); // Lấy mã khóa
     preferences.end();
@@ -22,24 +21,41 @@ String getPinCodeFromNVS() {
 static unsigned long firstWrongAttemptTime = 0; // Biến lưu thời gian của lần thử sai đầu tiên
 static unsigned long lastKeypressTime = 0; // Biến lưu thời gian nhấn phím cuối cùng
 void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
-    preferences_lockcontrol.begin("config", false);
-    incorrectAttempts = preferences_lockcontrol.getInt("incorrectAttempts", incorrectAttempts);  // Đọc lại số lần sai từ NVS
+    preferences.begin("PinCodeEnable", false);
+    incorrectAttempts = preferences.getInt("incorrectAttempts", 0);  // Đọc lại số lần sai từ NVS
     Serial.println("Số lần sai: " + String(incorrectAttempts));  // In số lần sai từ NVS
     // lấy thời gian sai đầu tiên từ NVS
-    firstWrongAttemptTime = preferences_lockcontrol.getULong("firstWrongAttemptTime", 0); // Đọc thời gian sai đầu tiên từ NVS
-    preferences_lockcontrol.end();
+    firstWrongAttemptTime = preferences.getULong("firstWrongAttemptTime", 0); // Đọc thời gian sai đầu tiên từ NVS
+    preferences.end();
 
-    // nếu dữ firebase đã bị vô hiệu hóa mã khóa thì không cho nhập mã khóa
-    if (checkPinCodeEnable(getLockId()) == false) {
+    //test
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("So lan sai: " + String(incorrectAttempts)); // In số lần sai
+    lcd.setCursor(0, 1);
+    lcd.print("Thoi gian: " + String(firstWrongAttemptTime)); // In thời gian sai đầu tiên
+    delay(5000);  
+
+    // kiểm tra thời gian sai đầu tiên và thời gian hiện tại
+    unsigned long currentMillis = millis();
+    if (firstWrongAttemptTime != 0 && (currentMillis - firstWrongAttemptTime) > Config::wrongAttemptDuration) {
+        // Nếu thời gian sai đầu tiên đã quá thời gian quy định thì reset lại số lần sai
+        preferences.begin("PinCodeEnable", false);
+        preferences.clear(); // Xóa dữ liệu trong NVS
+        preferences.end();
+        incorrectAttempts = 0; // Reset biến toàn cục
+        deletePinCodeDisable(getLockId()); // Xóa vô hiệu hóa mã khóa ở firebase
+    } else if (incorrectAttempts >= Config::maxWrongAttempts) {
+        // Nếu đã sai quá số lần quy định thì không cho nhập mã khóa
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Ma khoa da");
         lcd.setCursor(0, 1);
-        lcd.print("vo hieu hoa!");
+        lcd.print("bi vo hieu hoa!");
         delay(2000);
         lcd.clear();
         return;
-    }   
+    }
 
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -92,16 +108,16 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                     enteredPassword = "";
                     incorrectAttempts++;
 
-                    // Lưu lại số lần sai và lần sai cuối vào NVS ngay sau mỗi lần sai
-                    preferences_lockcontrol.begin("config", false);
-                    preferences_lockcontrol.putInt("incorrectAttempts", incorrectAttempts); // Lưu lại số lần sai vào NVS
+                    // Lưu lại số lần sai
+                    preferences.begin("PinCodeEnable", false);
+                    preferences.putInt("incorrectAttempts", incorrectAttempts); // Lưu lại số lần sai vào NVS
                     
                     if (incorrectAttempts == 1) {
                         firstWrongAttemptTime = currentMillis; // Lưu thời gian sai đầu tiên
-                        preferences_lockcontrol.putULong("firstWrongAttemptTime", firstWrongAttemptTime); // Lưu thời gian sai đầu tiên vào NVS
+                        preferences.putULong("firstWrongAttemptTime", firstWrongAttemptTime); // Lưu thời gian sai đầu tiên vào NVS
                     }
 
-                    preferences_lockcontrol.end();
+                    preferences.end();
 
                     // Kiểm tra số lần sai liên tiếp
                     if (incorrectAttempts >= Config::maxWrongAttempts) {
@@ -114,25 +130,12 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                         //ghi lịch sử vào Firebase
                         putWarningHistory(getUuidFromNVS(), getLockId(), "Truy cập trái phép");
 
-                        // reset số lần sai và thời gian sai đầu tiên trong nvs
-                        preferences_lockcontrol.begin("config", false);
-                        preferences_lockcontrol.putInt("incorrectAttempts", 0); // Reset số lần sai
-                        preferences_lockcontrol.putULong("firstWrongAttemptTime", 0); // Reset thời gian sai đầu tiên
-                        preferences_lockcontrol.end();
 
                         // Ghi vào Firebase để vô hiệu hóa mã khóa trong 30 phút
                         putPinCodeDisable(getLockId(), Config::pinCodeDisableDuration);
 
                         Serial.println("Vô hiệu hóa mã khóa");
-
-                        unsigned long buzzerStart = millis();
-                        while (millis() - buzzerStart < Config::buzzerDuration) { 
-                            digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
-                            delay(1000);  // kêu 1 giây
-                            digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
-                            delay(1000);  // nghỉ 1 giây
-                        }
-
+                        digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
                         lcd.clear();
                         return; // Thoát khỏi vòng lặp sau khi đã thông báo
                     }
@@ -148,10 +151,9 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
 }
 
 String getUuidFromNVS() {
-    Preferences preferences3;
-    preferences3.begin("config", true); // true = chỉ đọc
-    String uuid = preferences3.getString("uuid", ""); // "" là giá trị mặc định nếu chưa có
-    preferences3.end();
+    preferences.begin("config", true); // true = chỉ đọc
+    String uuid = preferences.getString("uuid", ""); // "" là giá trị mặc định nếu chưa có
+    preferences.end();
     return uuid;
 }
 
@@ -174,11 +176,10 @@ void openLock(LiquidCrystal_I2C &lcd) {
     lcd.setCursor(0, 0);
     lcd.print("Da mo khoa!");
 
-    preferences_lockcontrol.begin("config", false);
-    // reset thời gian và số lần sai
-    preferences_lockcontrol.putInt("incorrectAttempts", 0);
-    preferences_lockcontrol.putULong("firstWrongAttemptTime", 0);
-    preferences_lockcontrol.end();
+    preferences.begin("PinCodeEnable", false);
+    preferences.remove("incorrectAttempts");
+    preferences.remove("firstWrongAttemptTime");
+    preferences.end();
     delay(Config::relayDuration - Config::buzzerUnlockDuration); // Giữ relay mở trong thời gian quy định
     digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
     changeLockStatus(getLockId(), true); // Cập nhật trạng thái khóa
@@ -192,6 +193,35 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.0"; // Phiên bản hiện tại
+    String version = "v1.1.1"; // Phiên bản hiện tại
     return version;
 }
+
+void sendLockNotification(const String& topic, const String& title, const String& message) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("[Notification] WiFi not connected!");
+        return;
+    }
+  
+    HTTPClient http;
+    http.begin("https://iot-smartlock-firmware.onrender.com/send-topic");
+    http.addHeader("Content-Type", "application/json");
+  
+    DynamicJsonDocument doc(256);
+    doc["topic"] = topic;
+    doc["title"] = title;
+    doc["body"] = message;
+  
+    String payload;
+    serializeJson(doc, payload);
+  
+    int httpCode = http.POST(payload);
+    
+    if (httpCode > 0) {
+        Serial.printf("[Notification] Sent! Code: %d\n", httpCode);
+    } else {
+        Serial.printf("[Notification] Failed! Error: %s\n", http.errorToString(httpCode).c_str());
+    }
+  
+    http.end();
+  }

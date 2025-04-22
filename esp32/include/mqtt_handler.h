@@ -6,6 +6,7 @@
 #include <Preferences.h>
 #include <lock_control.h>
 #include <Update.h>
+#include <gpo_config.h>
 
 void reconnect(String& lockId, LiquidCrystal_I2C &lcd);
 void callback(char* topic, byte* payload, unsigned int length, LiquidCrystal_I2C &lcd);
@@ -15,3 +16,4 @@ void mqttSend(String topic, String message);
 bool checkFirmware(LiquidCrystal_I2C &lcd);
 void updateFirmware(LiquidCrystal_I2C &lcd);
 void checkFirmwareResultAfterBoot();
+void mqttSendRestart();

@@ -5,7 +5,7 @@
 #include "lock_control.h"
 
 WebServer server(80);
-Preferences preferences_apiserver;
+extern Preferences preferences;
 
 // Tạo con trỏ toàn cục cho LCD
 LiquidCrystal_I2C *lcdGlobal;
@@ -79,11 +79,11 @@ void handleConnectWifi() {
     lcdGlobal->setCursor(0, 1);
     lcdGlobal->print(ssid + "!");
 
-    preferences_apiserver.begin("config", false);
-    preferences_apiserver.putString("wifiSSID", ssid);
-    preferences_apiserver.putString("wifiPassword", password);
-    preferences_apiserver.putString("uuid", uuid);
-    preferences_apiserver.end();
+    preferences.begin("config", false);
+    preferences.putString("wifiSSID", ssid);
+    preferences.putString("wifiPassword", password);
+    preferences.putString("uuid", uuid);
+    preferences.end();
 
     server.send(200, "text/plain", "Connected");
     delay(1000);

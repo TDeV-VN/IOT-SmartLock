@@ -1,17 +1,12 @@
+#ifndef GPO_CONFIG_H
+#define GPO_CONFIG_H
+
 #include <Arduino.h>
 
 struct GPO_CONFIG
 {
     static const int RELAY_PIN = 4; // Chân nối relay
-    static const int BUZZER_PIN = 2; // Chân nối buzzer
-
-    // LCD 16x2
-    static const int RS = 23;
-    static const int E = 19;
-    static const int D4 = 18;
-    static const int D5 = 17;
-    static const int D6 = 16;
-    static const int D7 = 15;
+    static const int BUZZER_PIN = 23; // Chân nối buzzer
 
     // Keypad
     static const byte rows = 4;
@@ -21,4 +16,4 @@ struct GPO_CONFIG
     static byte colPins[cols];
 };
 
-
+#endif // GPO_CONFIG_H

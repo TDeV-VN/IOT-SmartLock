@@ -27,6 +27,10 @@ void handleScanWifi() {
     if (i != n - 1) json += ", ";
   }
   json += "]";
+  // Thêm header CORS trong code ESP32
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "GET,POST");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
   server.send(200, "application/json", json);
 }
 

@@ -31,12 +31,6 @@ const unsigned long FIREBASE_INTERVAL = 1000;
 void setup() {
   Serial.begin(115200);
 
-  // Đảm bảo dữ liệu được khôi phục từ NVS
-  preferences.begin("PinCodeEnable", true); // mở ở chế độ read-only
-  int a = preferences.getInt("incorrectAttempts", 0);
-  long b = preferences.getULong("firstWrongAttemptTime", 0);
-  preferences.end();
-
   // Khởi động LCD
   lcd.init();
   lcd.backlight();
@@ -54,25 +48,34 @@ void setup() {
   lcd.setCursor(0, 1);
   delay(1000);
 
-  // // test xóa nvs
-  // preferences.begin("config", false);
-  // preferences.clear();
-  // preferences.end();
+  connectwifi();
 
-  // connectwifi();
-
-  lcd.print("Connecting WiFi...");
+  // lcd.print("Connecting WiFi...");
   // Kết nối WiFi
-  WiFi.begin("Tiến", "11012004Aa");
+  // WiFi.begin("Tiến", "11012004Aa");
   // WiFi.begin("Wokwi-GUEST", "", 6);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
-  lcd.clear();
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  // }
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
+  // lcd.print("Connected to WiFi");
+  // delay(1000);
+  // lcd.clear();
+
+  // Cấu hình NTP
+  configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov"); // GMT+7 (7 * 3600 giây)
+  Serial.println("Waiting for NTP time sync...");
   lcd.setCursor(0, 0);
-  lcd.print("Connected to WiFi");
-  delay(1000);
-  lcd.clear();
+  lcd.print("Waiting for NTP");
+
+  // Chờ đồng bộ thời gian
+  time_t now = time(nullptr);
+  while (now < 8 * 3600 * 2) { // Kiểm tra nếu thời gian chưa được đồng bộ
+      delay(500);
+      Serial.print(".");
+      now = time(nullptr);
+  }
 
   // Khởi động Firebase
   firebaseSetup(lcd);
@@ -80,21 +83,25 @@ void setup() {
   // Khởi động MQTT
   mqttSetup(lcd);
 
-  // gởi mqtt
-  void mqttSendRestart();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("San sang");
+  lcd.setCursor(0, 1);
+  lcd.print("hoat dong!");
+  delay(1000);
+  lcd.clear();
 }
 
 void loop() {
   // nếu mất wifi thì kết nối lại từ NVS
-  // if (WiFi.status() != WL_CONNECTED) {
-  //   preferences.begin("config", false);
-  //   String ssid = preferences.getString("wifiSSID", "");
-  //   String password = preferences.getString("wifiPassword", "");
-  //   preferences.end();
+  if (WiFi.status() != WL_CONNECTED) {
+    preferences.begin("config", false);
+    String ssid = preferences.getString("wifiSSID", "");
+    String password = preferences.getString("wifiPassword", "");
+    preferences.end();
     
-  //   WiFi.begin(ssid.c_str(), password.c_str());
-  //   delay(500);
-  // }
+    WiFi.begin(ssid.c_str(), password.c_str());
+  }
 
   mqttLoop(lockId, lcd); // Gọi hàm mqttLoop để xử lý MQTT
 
@@ -129,9 +136,11 @@ void resetLock() {
   preferences.begin("config", false);
   preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
   preferences.end();
+  delay(1000);
   preferences.begin("PinCodeEnable", false);
   preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
   preferences.end();
+  delay(1000);
 
   // khởi động lại thiết bị
   ESP.restart();

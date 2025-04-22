@@ -17,34 +17,32 @@ String getPinCodeFromNVS() {
     return pinCode;
 }
 
-// Khai báo thời gian sai cuối cùng và thời gian nhấn phím cuối cùng
-static unsigned long firstWrongAttemptTime = 0; // Biến lưu thời gian của lần thử sai đầu tiên
 static unsigned long lastKeypressTime = 0; // Biến lưu thời gian nhấn phím cuối cùng
 void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
     preferences.begin("PinCodeEnable", false);
-    incorrectAttempts = preferences.getInt("incorrectAttempts", 0);  // Đọc lại số lần sai từ NVS
+    incorrectAttempts = preferences.getInt("k", 0);  // Đọc lại số lần sai từ NVS
     Serial.println("Số lần sai: " + String(incorrectAttempts));  // In số lần sai từ NVS
     // lấy thời gian sai đầu tiên từ NVS
-    firstWrongAttemptTime = preferences.getULong("firstWrongAttemptTime", 0); // Đọc thời gian sai đầu tiên từ NVS
+    time_t firstWrongAttemptTime = preferences.getULong("f", 0); // Đọc timestamp từ NVS
     preferences.end();
 
-    //test
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("So lan sai: " + String(incorrectAttempts)); // In số lần sai
-    lcd.setCursor(0, 1);
-    lcd.print("Thoi gian: " + String(firstWrongAttemptTime)); // In thời gian sai đầu tiên
-    delay(5000);  
+    // //test
+    // lcd.clear();
+    // lcd.setCursor(0, 0);
+    // lcd.print("So lan sai: " + String(incorrectAttempts)); // In số lần sai
+    // lcd.setCursor(0, 1);
+    // lcd.print("Thoi gian: " + String(firstWrongAttemptTime)); // In thời gian sai đầu tiên
+    // delay(5000);  
 
     // kiểm tra thời gian sai đầu tiên và thời gian hiện tại
     unsigned long currentMillis = millis();
-    if (firstWrongAttemptTime != 0 && (currentMillis - firstWrongAttemptTime) > Config::wrongAttemptDuration) {
+    if (firstWrongAttemptTime != 0 && (time(nullptr) - firstWrongAttemptTime) > Config::wrongAttemptDuration) {
         // Nếu thời gian sai đầu tiên đã quá thời gian quy định thì reset lại số lần sai
         preferences.begin("PinCodeEnable", false);
-        preferences.clear(); // Xóa dữ liệu trong NVS
+        preferences.remove("k");
+        preferences.remove("f");
         preferences.end();
         incorrectAttempts = 0; // Reset biến toàn cục
-        deletePinCodeDisable(getLockId()); // Xóa vô hiệu hóa mã khóa ở firebase
     } else if (incorrectAttempts >= Config::maxWrongAttempts) {
         // Nếu đã sai quá số lần quy định thì không cho nhập mã khóa
         lcd.clear();
@@ -77,7 +75,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
         if (key) {
             lastKeypressTime = currentMillis;
 
-            if (key == '#') {
+            if (key == '*') {
                 lcd.clear();
                 lcd.setCursor(0, 0);
                 lcd.print("Thoat!");
@@ -110,11 +108,11 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
 
                     // Lưu lại số lần sai
                     preferences.begin("PinCodeEnable", false);
-                    preferences.putInt("incorrectAttempts", incorrectAttempts); // Lưu lại số lần sai vào NVS
+                    preferences.putInt("k", incorrectAttempts); // Lưu lại số lần sai vào NVS
                     
                     if (incorrectAttempts == 1) {
-                        firstWrongAttemptTime = currentMillis; // Lưu thời gian sai đầu tiên
-                        preferences.putULong("firstWrongAttemptTime", firstWrongAttemptTime); // Lưu thời gian sai đầu tiên vào NVS
+                        time_t currentTimestamp = time(nullptr); // Lấy timestamp hiện tại
+                        preferences.putULong("f", currentTimestamp); // Lưu timestamp vào NVSsai đầu tiên
                     }
 
                     preferences.end();
@@ -127,9 +125,13 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
                         lcd.setCursor(0, 1);
                         lcd.print("ma khoa!");
 
+                        // Gửi FCM
+                        String topic = "warning_" + getLockId();
+                        String title = "Cảnh báo truy cập trái phép!";
+                        sendLockNotification(topic, title, "Phương thức mở bằng mã khóa đã bị vô hiệu hóa!");
+
                         //ghi lịch sử vào Firebase
                         putWarningHistory(getUuidFromNVS(), getLockId(), "Truy cập trái phép");
-
 
                         // Ghi vào Firebase để vô hiệu hóa mã khóa trong 30 phút
                         putPinCodeDisable(getLockId(), Config::pinCodeDisableDuration);
@@ -177,8 +179,8 @@ void openLock(LiquidCrystal_I2C &lcd) {
     lcd.print("Da mo khoa!");
 
     preferences.begin("PinCodeEnable", false);
-    preferences.remove("incorrectAttempts");
-    preferences.remove("firstWrongAttemptTime");
+    preferences.remove("k");
+    preferences.remove("f");
     preferences.end();
     delay(Config::relayDuration - Config::buzzerUnlockDuration); // Giữ relay mở trong thời gian quy định
     digitalWrite(GPO_CONFIG::RELAY_PIN, HIGH); // Đóng relay lại
@@ -193,7 +195,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.1"; // Phiên bản hiện tại
+    String version = "v1.1.2"; // Phiên bản hiện tại
     return version;
 }
 

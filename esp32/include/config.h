@@ -11,8 +11,8 @@ struct Config {
      // số lần sai mã khóa liên tiếp sẽ bị báo động
     static const int maxWrongAttempts = 5; // 5 lần
 
-     // Nếu nhập sai đủ số lần liên tiếp trong khoảng thời gian này thì sẽ bị vô hiệu hóa mã khóa
-     static const long wrongAttemptDuration = 1800000; // 30 phút (1,800,000 ms)
+     // Nếu nhập sai đủ số lần liên tiếp trong khoảng thời gian này thì sẽ bị vô hiệu hóa mã khóa: 30 phút, tính theo giây
+     static const long wrongAttemptDuration = 1800; // 30 phút (1,800 giây)
      
      // thời gian vô hiệu hóa mã khóa
     static const long pinCodeDisableDuration = 1800; // 30 phút (1,800 giây)

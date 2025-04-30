@@ -19,9 +19,68 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
   bool _isDisposed = false; // Thêm biến kiểm tra disposed
 
   @override
+  void initState() {
+    super.initState();
+    _loadWifiList();
+  }
+
+  @override
   void dispose() {
     _isDisposed = true; // Đánh dấu khi widget bị hủy
     super.dispose();
+  }
+
+  // Lưu dữ liệu vào Firebase
+  Future<void> _saveDataToFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // lấy mac và tắt AP
+    final macAddress = await _getMacAddress();
+    print('Địa chỉ MAC: $macAddress');
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(macAddress))
+    );
+
+    // Lưu dữ liệu vào Firestore hoặc Realtime Database
+    // Ví dụ: Firestore
+    // await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+    //   'ssid': ssid,
+    //   'password': password,
+    // });
+  }
+
+  // Hàm gọi đến endpoint handleGetMac
+  Future<String> _getMacAddress() async {
+    const esp32Ip = '192.168.4.1'; // IP mặc định của ESP32 SoftAP
+    final url = Uri.parse('http://$esp32Ip/mac/'); // Endpoint handleGetMac
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        // tắt AP
+        // await _shutdownAccessPoint();
+        return response.body; // Trả về địa chỉ MAC
+      } else {
+        throw Exception('Failed to get MAC address: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error connecting to ESP32: $e');
+    }
+  }
+
+  // Hàm gọi đến endpoint handleShutdownAP
+  Future<void> _shutdownAccessPoint() async {
+    const esp32Ip = '192.168.4.1'; // IP mặc định của ESP32 SoftAP
+    final url = Uri.parse('http://$esp32Ip/shutdown-ap'); // Endpoint handleShutdownAP
+    try {
+      final response = await http.post(url);
+      if (response.statusCode == 200) {
+        print('Access Point shutdown successfully');
+      } else {
+        throw Exception('Failed to shutdown AP: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error connecting to ESP32: $e');
+    }
   }
 
   Future<void> _loadWifiList() async {
@@ -105,12 +164,11 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
       if (!_isDisposed) {
         Navigator.pop(context); // Đóng loading dialog
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Kết nối thành công!'))
-          );
+          print("KẾT NỐI THÀNH CÔNG: ${response.statusCode}");
+          _saveDataToFirebase();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Kết nối thất bại: ${response.body}'))
+              SnackBar(content: Text('Kết nối thất bại!'))
           );
           print('Kết nối thất bại: ${response.body}');
         }
@@ -119,7 +177,7 @@ class _WifiSetupScreenState extends State<WifiSetupScreen> {
       if (!_isDisposed) {
         Navigator.pop(context); // Đóng loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi kết nối: ${e.toString()}'))
+            SnackBar(content: Text('Lỗi kết nối!'))
         );
         print('Lỗi kết nối: ${e.toString()}');
       }

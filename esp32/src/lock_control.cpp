@@ -195,7 +195,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v2.0.0"; // Phiên bản hiện tại
+    String version = "v1.1.3"; // Phiên bản hiện tại
     return version;
 }
 

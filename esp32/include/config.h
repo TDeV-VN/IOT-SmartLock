@@ -1,5 +1,6 @@
-#include <Arduino.h>
+#pragma once
 
+#include <Arduino.h>
 struct Config {
     // Access point
     String apSSID;

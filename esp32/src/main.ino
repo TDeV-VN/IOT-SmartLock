@@ -142,6 +142,19 @@ void resetLock() {
   preferences.end();
   delay(1000);
 
+  // xóa dư liệu trong Firebase
+  if (resetLockDataForAllUsers(lockId)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Reset lock data");
+    lcd.setCursor(0, 1);
+    lcd.print("successfully!");
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("Reset lock data");
+    lcd.setCursor(0, 1);
+    lcd.print("failed!");
+  }
+
   // khởi động lại thiết bị
   ESP.restart();
 }

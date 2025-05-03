@@ -100,6 +100,7 @@ void handleConnectWifi() {
     lcdGlobal->setCursor(0, 0);
     lcdGlobal->print("Failed to connect");
     delay(2000);
+    lcdGlobal->clear();
 
     server.send(500, "text/plain", "Connection failed");
   }

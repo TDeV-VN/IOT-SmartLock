@@ -11,6 +11,8 @@
 #include <Preferences.h>
 
 extern Preferences preferences;
+TaskHandle_t buzzerTaskHandle = NULL;
+TaskHandle_t relayTaskHandle = NULL;
 
 #define FIRMWARE_VERSION getFirmwareVersion()
 String lockId = getLockId();
@@ -54,6 +56,23 @@ void setup() {
   lcd.print("Firmware " + String(FIRMWARE_VERSION));
   lcd.setCursor(0, 1);
   delay(1000);
+
+  // Tạo task điều khiển buzzer
+  xTaskCreate(
+    buzzerTask,          // Hàm thực thi của task
+    "BuzzerTask",        // Tên task (dùng để debug)
+    2048,                // Kích thước stack (bytes) - điều chỉnh nếu cần
+    NULL,                // Tham số truyền vào task (không cần trong trường hợp này)
+    1,                   // Độ ưu tiên (0 là thấp nhất)
+    &buzzerTaskHandle   // Handle để điều khiển task
+  );
+
+
+  if (buzzerTaskHandle == NULL) {
+    Serial.println("Failed to create Buzzer Task!");
+  } else {
+    Serial.println("Buzzer Task created successfully.");
+  }
 
   connectwifi();
 

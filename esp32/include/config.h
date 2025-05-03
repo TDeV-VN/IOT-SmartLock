@@ -16,17 +16,20 @@ struct Config {
      static const long wrongAttemptDuration = 1800; // 30 phút (1,800 giây)
      
      // thời gian vô hiệu hóa mã khóa
-    static const long pinCodeDisableDuration = 1800; // 30 phút (1,800 giây)
+    static const long pinCodeDisableDuration = 3600; // 60 phút (3600s)
 
     // thời gian còi báo động kêu khi truy cập trái phép
     static const long buzzerDuration = 60000; // 1 phút (60,000 ms)
 
     // thời gian còi báo động kêu khi mở khóa thành công
-    static const long buzzerUnlockDuration = 2000; // 2 giây (2,000 ms)
+    static const long buzzerUnlockDuration = 300; // 0.3 giây (300 ms)
 
     // thời gian còi báo động kêu khi mở khóa thất bại
-    static const long buzzerFailDuration = 2000; // 2 giây (2,000 ms)
+    static const long buzzerFailDuration = 1000; // 1 giây (1,000 ms)
 
     // thời gian giữ khóa mở
     static const long relayDuration = 5000; // 5 giây (5,000 ms)
+
+    // thời gian còi kêu khi xác nhận reset khóa
+    static const long buzzerResetDuration = 500; // 0.5s
 };

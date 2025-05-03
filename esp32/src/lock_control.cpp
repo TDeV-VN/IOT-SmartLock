@@ -100,6 +100,11 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
                     if (!isReset) {
                         openLock(lcd); // Mở khóa nếu mã đúng
                     } else {
+                        // Gửi thông báo đến buzzerTask để nó kêu trong thời gian định sẵn
+                        if (buzzerTaskHandle != NULL) {
+                            xTaskNotify(buzzerTaskHandle, Config::buzzerResetDuration, eSetValueWithOverwrite);
+                            Serial.println("Notification sent to Buzzer Task.");
+                        }
                         //reset khi mã đúng
                         Serial.println("##### RESET LOCK FUNCTION CALLED! #####");
                         lcd.clear();
@@ -136,6 +141,13 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
                     }
                     return;
                 } else {
+                    // Gửi thông báo đến buzzerTask để nó kêu trong thời gian định sẵn
+                    if (buzzerTaskHandle != NULL) {
+                        xTaskNotify(buzzerTaskHandle, Config::buzzerFailDuration, eSetValueWithOverwrite);
+                        Serial.println("Notification sent to Buzzer Task.");
+                    }
+
+                    //lcd
                     lcd.clear();
                     lcd.setCursor(0, 0);
                     lcd.print("Sai ma khoa!");
@@ -157,6 +169,14 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
 
                     // Kiểm tra số lần sai liên tiếp
                     if (incorrectAttempts >= Config::maxWrongAttempts) {
+
+                        // Gửi thông báo đến buzzerTask để nó kêu trong thời gian định sẵn
+                        if (buzzerTaskHandle != NULL) {
+                            xTaskNotify(buzzerTaskHandle, Config::buzzerDuration, eSetValueWithOverwrite);
+                            Serial.println("Notification sent to Buzzer Task.");
+                        }
+
+
                         lcd.clear();
                         lcd.setCursor(0, 0);
                         lcd.print("Vo hieu hoa");
@@ -175,7 +195,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
                         putPinCodeDisable(getLockId(), Config::pinCodeDisableDuration);
 
                         Serial.println("Vô hiệu hóa mã khóa");
-                        digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
+
                         lcd.clear();
                         return; // Thoát khỏi vòng lặp sau khi đã thông báo
                     }
@@ -205,12 +225,13 @@ String getLockId() {
 }
 
 void openLock(LiquidCrystal_I2C &lcd) {
+    // Gửi thông báo đến buzzerTask để nó kêu trong thời gian định sẵn
+    if (buzzerTaskHandle != NULL) {
+        xTaskNotify(buzzerTaskHandle, Config::buzzerUnlockDuration, eSetValueWithOverwrite);
+        Serial.println("Notification sent to Buzzer Task.");
+    }
     digitalWrite(GPO_CONFIG::RELAY_PIN, LOW);
     changeLockStatus(getLockId(), false); // cập nhật trạng thái khóa
-    // Buzzer kêu khi mở khóa thành công
-    digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH);
-    delay(Config::buzzerUnlockDuration);
-    digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);
     // lcd
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -233,7 +254,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.6"; // Phiên bản hiện tại
+    String version = "v1.1.7"; // Phiên bản hiện tại
     return version;
 }
 
@@ -265,3 +286,26 @@ void sendLockNotification(const String& topic, const String& title, const String
   
     http.end();
   }
+
+
+// Hàm chạy trong task điều khiển buzzer
+void buzzerTask(void * parameter) {
+  unsigned long durationMs = 0; // Thời gian kêu
+
+  while (true) {
+    // Đợi thông báo (notification) từ task chính để bắt đầu kêu
+    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY) sẽ đợi vô hạn cho đến khi có thông báo
+    // pdTRUE: Reset giá trị thông báo về 0 sau khi nhận
+    // Tham số thứ hai là thời gian chờ tối đa (ticks), portMAX_DELAY là đợi mãi mãi
+    durationMs = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+    if (durationMs > 0) {
+      Serial.printf("[Buzzer Task] Received notification, buzzing for %lu ms\n", durationMs);
+      digitalWrite(GPO_CONFIG::BUZZER_PIN, HIGH); // Bật còi
+      vTaskDelay(pdMS_TO_TICKS(durationMs)); // Chờ không chặn (non-blocking)
+      digitalWrite(GPO_CONFIG::BUZZER_PIN, LOW);  // Tắt còi
+      Serial.println("[Buzzer Task] Buzzing finished.");
+    }
+    // Task quay lại đợi thông báo tiếp theo
+  }
+}

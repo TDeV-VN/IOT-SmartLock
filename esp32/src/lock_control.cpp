@@ -43,6 +43,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
         preferences.remove("f");
         preferences.end();
         incorrectAttempts = 0; // Reset biến toàn cục
+        Serial.println("Reset số lần sai!");
     } else if (incorrectAttempts >= Config::maxWrongAttempts) {
         // Nếu đã sai quá số lần quy định thì không cho nhập mã khóa
         lcd.clear();

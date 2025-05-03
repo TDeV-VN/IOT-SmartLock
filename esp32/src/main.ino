@@ -28,6 +28,13 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 unsigned long lastFirebaseUpdate = 0;
 const unsigned long FIREBASE_INTERVAL = 1000; 
 
+// --- Biến cho logic nhấn giữ phím # ---
+bool hashKeyHeld = false;            // Cờ báo phím # đang được giữ
+unsigned long hashKeyPressStartTime = 0; // Thời điểm bắt đầu nhấn #
+const unsigned long HASH_HOLD_DURATION = 5000; // 5 giây (5000ms)
+bool resetTriggered = false;         // Cờ để tránh gọi reset nhiều lần
+// ------------------------------------
+
 void setup() {
   Serial.begin(115200);
 
@@ -109,14 +116,61 @@ void loop() {
   extern WebServer server;
   server.handleClient();
 
-  char key = keypad.getKey();
-  if (key) {
-    if (key == '*') {
-      handleLockControl(keypad, lcd);
-    } else if (key == '#') {
-      resetLock(); // gọi hàm reset khóa
-    } 
-  }
+   // --- Xử lý Keypad với logic nhấn giữ ---
+  // Lấy trạng thái hiện tại của các phím (quan trọng cho việc phát hiện nhấn và nhả)
+  if (keypad.getKeys()) {
+    for (int i = 0; i < LIST_MAX; i++) { // LIST_MAX thường là 10 trong thư viện Keypad
+        if (keypad.key[i].stateChanged) { // Chỉ xử lý khi trạng thái phím thay đổi
+            char currentKey = keypad.key[i].kchar;
+            KeyState currentState = keypad.key[i].kstate;
+
+            if (currentKey == '#') {
+                if (currentState == PRESSED) {
+                    Serial.println("Key '#' PRESSED");
+                    hashKeyHeld = true;
+                    hashKeyPressStartTime = millis();
+                    resetTriggered = false; // Reset cờ trigger khi bắt đầu nhấn mới
+                    // Có thể hiển thị gì đó lên LCD báo hiệu đang giữ phím #
+                    lcd.clear();
+                    lcd.print("Giu # de reset");
+                } else if (currentState == RELEASED) {
+                    Serial.println("Key '#' RELEASED");
+                    hashKeyHeld = false;
+                    hashKeyPressStartTime = 0;
+                    if (!resetTriggered) { // Chỉ xóa LCD nếu chưa trigger reset
+                       lcd.clear(); // Xóa thông báo giữ phím
+                    }
+                }
+            } else if (currentKey == '*') {
+                 if (currentState == PRESSED) { // Chỉ xử lý khi nhấn *
+                     Serial.println("Key '*' PRESSED");
+                     // Dừng kiểm tra nhấn giữ # nếu đang nhấn *
+                     if (hashKeyHeld) {
+                         hashKeyHeld = false;
+                         hashKeyPressStartTime = 0;
+                         lcd.clear();
+                     }
+                     handleLockControl(keypad, lcd);
+                 }
+            }
+            // Xử lý các phím khác nếu cần
+        }
+    }
+} // kết thúc if (keypad.getKeys())
+
+// --- Kiểm tra logic nhấn giữ # liên tục trong loop ---
+if (hashKeyHeld && !resetTriggered) {
+    unsigned long heldDuration = millis() - hashKeyPressStartTime; // Thời gian đã giữ (heldDuration)
+
+    if (heldDuration >= HASH_HOLD_DURATION) {
+        Serial.println("Key '#' held for 5 seconds. Triggering reset...");
+
+        resetTriggered = true; // Đánh dấu đã trigger để tránh gọi lại
+        hashKeyHeld = false; // Ngừng trạng thái nhấn giữ
+        resetLock();         // Gọi hàm reset
+    }
+}
+// --------------------------------------------------
 
   // Gọi firebase định kỳ
   if (millis() - lastFirebaseUpdate > FIREBASE_INTERVAL) {
@@ -126,6 +180,7 @@ void loop() {
 }
 
 void resetLock() {
+  Serial.println("##### RESET LOCK FUNCTION CALLED! #####");
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Resetting lock...");

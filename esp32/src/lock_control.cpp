@@ -18,7 +18,7 @@ String getPinCodeFromNVS() {
 }
 
 static unsigned long lastKeypressTime = 0; // Biến lưu thời gian nhấn phím cuối cùng
-void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
+void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
     preferences.begin("PinCodeEnable", false);
     incorrectAttempts = preferences.getInt("k", 0);  // Đọc lại số lần sai từ NVS
     Serial.println("Số lần sai: " + String(incorrectAttempts));  // In số lần sai từ NVS
@@ -96,7 +96,44 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd) {
 
             if (enteredPassword.length() == 4) {
                 if (enteredPassword == getPinCodeFromNVS()) {
-                    openLock(lcd); // Mở khóa nếu mã đúng
+                
+                    if (!isReset) {
+                        openLock(lcd); // Mở khóa nếu mã đúng
+                    } else {
+                        //reset khi mã đúng
+                        Serial.println("##### RESET LOCK FUNCTION CALLED! #####");
+                        lcd.clear();
+                        lcd.setCursor(0, 0);
+                        lcd.print("Resetting lock...");
+                        delay(2000);
+                        lcd.clear();
+                        
+                        // xóa dữ liệu trong NVS
+                        preferences.begin("config", false);
+                        preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
+                        preferences.end();
+                        delay(1000);
+                        preferences.begin("PinCodeEnable", false);
+                        preferences.clear(); // xóa toàn bộ dữ liệu trong NVS
+                        preferences.end();
+                        delay(1000);
+
+                        // xóa dư liệu trong Firebase
+                        if (resetLockDataForAllUsers(getLockId())) {
+                            lcd.setCursor(0, 0);
+                            lcd.print("Reset lock data");
+                            lcd.setCursor(0, 1);
+                            lcd.print("successfully!");
+                        } else {
+                            lcd.setCursor(0, 0);
+                            lcd.print("Reset lock data");
+                            lcd.setCursor(0, 1);
+                            lcd.print("failed!");
+                        }
+
+                        // khởi động lại thiết bị
+                        ESP.restart();
+                    }
                     return;
                 } else {
                     lcd.clear();
@@ -196,7 +233,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.5"; // Phiên bản hiện tại
+    String version = "v1.1.6"; // Phiên bản hiện tại
     return version;
 }
 

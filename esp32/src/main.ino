@@ -150,7 +150,7 @@ void loop() {
                          hashKeyPressStartTime = 0;
                          lcd.clear();
                      }
-                     handleLockControl(keypad, lcd);
+                     handleLockControl(keypad, lcd, false); // Gọi hàm xử lý mã khóa
                  }
             }
             // Xử lý các phím khác nếu cần
@@ -167,7 +167,7 @@ if (hashKeyHeld && !resetTriggered) {
 
         resetTriggered = true; // Đánh dấu đã trigger để tránh gọi lại
         hashKeyHeld = false; // Ngừng trạng thái nhấn giữ
-        resetLock();         // Gọi hàm reset
+        handleLockControl(keypad, lcd, true); // Gọi hàm reset khóa
     }
 }
 // --------------------------------------------------

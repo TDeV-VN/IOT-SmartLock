@@ -1,4 +1,5 @@
 
+import 'package:app/screens/qr_scanner_screen.dart';
 import 'package:app/screens/wifi_setup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
         '/warning_history': (context) => WarningHistoryScreen(),
         '/device_manager': (context) => DeviceManagerScreen(),
         '/wifi_setup': (context) => WifiSetupScreen(),
+        '/qr_scanner': (context) => QrScannerScreen(),
       },
     );
   }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:app/screens/show_set_share_code_bottom_sheet.dart';
+import 'package:app/screens/show_share_lock_bottom_sheet.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -294,7 +294,7 @@ class DeviceManagerScreen extends StatelessWidget {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                showSetShareCodeBottomSheet(context, lockId!);
+                showShareLockBottomSheet(context, lockId!);
               },
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),

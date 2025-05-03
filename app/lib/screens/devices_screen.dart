@@ -73,7 +73,35 @@ class _DevicesScreenState extends State<DevicesScreen> {
             SizedBox(height: 20),
             GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, '/wifi_setup');
+                showModalBottomSheet(
+                  context: context,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (context) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.add),
+                          title: Text('Thêm thủ công'),
+                          onTap: () {
+                            Navigator.pop(context); // Đóng BottomSheet
+                            Navigator.pushNamed(context, '/wifi_setup');
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.qr_code_scanner),
+                          title: Text('Thêm bằng QR'),
+                          onTap: () {
+                            Navigator.pop(context); // Đóng BottomSheet
+                            Navigator.pushNamed(context, '/qr_scanner');
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
               child: Text(
                 "Thêm thiết bị",

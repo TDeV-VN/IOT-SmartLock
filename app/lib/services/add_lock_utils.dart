@@ -7,28 +7,21 @@ import 'package:http/http.dart' as http;
 // import 'package:qr_flutter/qr_flutter.dart'; // Không cần cho sheet này
 import '../widgets/custom_button.dart'; // Import CustomButton
 
-// --- HÀM XÁC THỰC MÃ BÍ MẬT TRÊN SERVER ---
+// --- HÀM XÁC THỰC MÃ BÍ MẬT TRÊN SERVER (Đã sửa lỗi xử lý Exception) ---
 Future<bool> validateSecretCodeOnServer(String secretCode) async {
   const String backendBaseUrl = "https://iot-smartlock-firmware.onrender.com";
 
-  // --- TẠO URL VỚI QUERY PARAMETER ---
+  // Tạo URL với query parameter
   final queryParams = {'code': secretCode};
   final url = Uri.parse('$backendBaseUrl/validate-secret-code').replace(queryParameters: queryParams);
-  // Ví dụ URL: https://..../validate-secret-code?code=yourSecretCode
-  // ------------------------------------
-
-  String? localErrorMessage; // Biến lỗi cục bộ (có thể không cần nếu ném Exception)
 
   try {
     print('Validating secret code via URL: $url');
 
-    // --- GỬI POST REQUEST KHÔNG CÓ BODY VÀ HEADER CONTENT-TYPE JSON ---
+    // Gửi POST request không có body/header đặc biệt
     final response = await http.post(
       url,
-      // Không cần headers: {'Content-Type': 'application/json'},
-      // Không cần body: jsonEncode({'code': secretCode}),
-    ).timeout(const Duration(seconds: 15));
-    // ---------------------------------------------------------------
+    ).timeout(const Duration(seconds: 60));
 
     print('Validate Secret Code Response: ${response.statusCode} - ${response.body}');
 
@@ -36,61 +29,79 @@ Future<bool> validateSecretCodeOnServer(String secretCode) async {
     if (response.statusCode == 200) {
       try {
         final responseData = jsonDecode(response.body);
-        // Kiểm tra cả key 'valid' tồn tại và giá trị là true
-        if (responseData['valid'] == true) {
+        if (responseData.containsKey('valid') && responseData['valid'] == true) {
           print("Secret code is valid.");
-          return true; // Mã hợp lệ
+          return true;
         } else {
-          // Server trả về 200 nhưng valid=false hoặc không có key 'valid'
-          localErrorMessage = "Mã bí mật không hợp lệ hoặc đã hết hạn (Code 200).";
-          print("Secret code is invalid (valid: false or missing).");
-          // Ném Exception thay vì chỉ trả về false để hàm gọi biết lý do
-          throw Exception(localErrorMessage);
-          // return false;
+          // Server trả về valid=false hoặc không có key 'valid'
+          throw Exception("Mã bí mật không hợp lệ hoặc đã hết hạn.");
         }
-      } catch(e) {
-        // Lỗi parse JSON phản hồi 200? Phản hồi không đúng định dạng
-        print("Error parsing successful response JSON: $e");
-        throw Exception("Phản hồi từ server không hợp lệ.");
+      } catch (e) {
+        // Chỉ ném lỗi này nếu JSON không parse được
+        if (e is FormatException) {
+          print("Error parsing successful response JSON: $e");
+          throw Exception("Phản hồi từ server không hợp lệ.");
+        }
+        rethrow; // Ném lại lỗi ban đầu (nếu không phải lỗi parse JSON)
       }
     } else if (response.statusCode == 404) {
-      // Lỗi 404 thường có nghĩa là endpoint đúng nhưng không tìm thấy tài nguyên (code)
-      localErrorMessage = "Mã bí mật không tồn tại hoặc đã hết hạn (Code 404).";
+      // Lỗi 404
+      final errorMessage = "Mã bí mật không tồn tại hoặc đã hết hạn (Code 404).";
       print("Secret code not found or expired (404).");
-      throw Exception(localErrorMessage);
-      // return false;
-    }
-    // Bỏ qua kiểm tra lỗi 400 cụ thể vì chúng ta không biết chắc backend trả về gì
-    // else if (response.statusCode == 400 && ...) { ... }
-    else {
-      // Các lỗi khác (422 nếu URL sai, 5xx, ...)
+      throw Exception(errorMessage);
+    } else {
+      // Các lỗi khác (400, 422, 5xx, ...)
       String detailMessage = 'Lỗi không xác định từ server.'; // Mặc định
       try {
+        // Cố gắng parse lỗi chi tiết từ body JSON (thường là từ FastAPI)
         final errorData = jsonDecode(response.body);
-        // Cố gắng lấy thông điệp lỗi chi tiết hơn
-        if (errorData['detail'] is List && errorData['detail'].isNotEmpty) {
-          detailMessage = errorData['detail'][0]['msg'] ?? detailMessage;
-        } else if (errorData['detail'] is String) {
-          detailMessage = errorData['detail'];
+        if (errorData['detail'] != null) {
+          if (errorData['detail'] is List && errorData['detail'].isNotEmpty) {
+            // Lấy lỗi đầu tiên nếu detail là list
+            var firstError = errorData['detail'][0];
+            if(firstError is Map && firstError.containsKey('msg')){
+              detailMessage = firstError['msg'] ?? detailMessage;
+            } else {
+              detailMessage = errorData['detail'].toString(); // Chuyển list thành chuỗi nếu không có 'msg'
+            }
+          } else if (errorData['detail'] is String) {
+            // Nếu detail là chuỗi
+            detailMessage = errorData['detail'];
+          }
         }
       } catch (_) {
-        // Không parse được JSON lỗi, dùng mã lỗi HTTP
+        // Không parse được JSON lỗi, dùng mã lỗi HTTP làm thông báo
         detailMessage = 'Lỗi ${response.statusCode} khi xác thực mã.';
       }
-      localErrorMessage = detailMessage;
-      print("Validation failed with status ${response.statusCode}. Detail: $localErrorMessage");
-      throw Exception(localErrorMessage); // Ném lỗi
-      // return false;
+      final errorMessage = detailMessage;
+      print("Validation failed with status ${response.statusCode}. Detail: $errorMessage");
+      throw Exception(errorMessage); // Ném lỗi cụ thể
     }
   } on TimeoutException catch (_) {
+    // Bắt lỗi Timeout riêng
     print('Validate secret code request timed out.');
     throw Exception('Hết thời gian chờ phản hồi từ máy chủ.');
-  }
-  catch (e) {
-    // Bắt các lỗi khác (ví dụ: lỗi mạng, lỗi parse URL) và các Exception đã ném ở trên
-    print('Error calling validate-secret-code API: $e');
-    // Ném lại lỗi hoặc một Exception chung hơn
-    throw Exception('Không thể kết nối đến máy chủ xác thực.');
+  } catch (e) {
+    // Bắt các lỗi khác (ví dụ: lỗi mạng DNS, SocketException)
+    // và các Exception đã được ném từ các khối trên
+    print('Error caught in validateSecretCodeOnServer: $e');
+
+    // Kiểm tra xem lỗi đã có message chưa, nếu chưa thì cung cấp message chung
+    String errorMessageToShow;
+    if (e is Exception) {
+      // Cố gắng lấy message từ Exception
+      var message = e.toString();
+      // Loại bỏ tiền tố "Exception: " nếu có
+      if (message.startsWith("Exception: ")) {
+        message = message.substring("Exception: ".length);
+      }
+      errorMessageToShow = message.trim().isNotEmpty ? message : 'Đã xảy ra lỗi không mong muốn.';
+    } else {
+      errorMessageToShow = 'Đã xảy ra lỗi không mong muốn.';
+    }
+
+    // Ném lại Exception với thông báo đã xử lý
+    throw Exception(errorMessageToShow);
   }
 }
 
@@ -255,7 +266,8 @@ void showValidateAndAddLockBottomSheet(BuildContext context, Map<String, dynamic
 
                     try {
                       // 1. Xác thực mã bí mật với server
-                      bool isValidCode = await validateSecretCodeOnServer(secretCode);
+                      String code = lockIdFromQR + secretCode; // Tạo mã bí mật từ ID khóa và mã bí mật
+                      bool isValidCode = await validateSecretCodeOnServer(code);
 
                       if (isValidCode) {
                         // 2. Nếu mã hợp lệ, thêm khóa vào Firebase của người nhận
@@ -269,7 +281,7 @@ void showValidateAndAddLockBottomSheet(BuildContext context, Map<String, dynamic
                               SnackBar(content: Text('Đã thêm khóa "$lockNameFromQR" thành công!')),
                             );
                             // Có thể điều hướng đến màn hình chính hoặc danh sách khóa ở đây
-                            // Navigator.pushReplacementNamed(context, '/home');
+                            Navigator.pushNamed(context, '/home');
                           }
                         } else {
                           // Lỗi xảy ra khi thêm vào Firebase (đã được log bên trong hàm)
@@ -284,6 +296,7 @@ void showValidateAndAddLockBottomSheet(BuildContext context, Map<String, dynamic
                         // Mã không hợp lệ (errorMessage đã được set trong validateSecretCodeOnServer)
                         setState(() {
                           // Chỉ cần setState để cập nhật errorMessage đã được đặt
+                          errorMessage = errorMessage ?? 'Mã bí mật không hợp lệ.';
                         });
                       }
                     } catch (e) {

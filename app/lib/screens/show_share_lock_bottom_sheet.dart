@@ -21,7 +21,8 @@ void showShareLockBottomSheet(BuildContext context, String lockId) {
   // Hàm gọi API set-secret-code (giữ nguyên logic hiện tại của API)
   Future<bool> setSecretCodeOnServer(String secretCode) async {
     // --- SỬA ĐỔI: Tạo URL với query parameter ---
-    final queryParams = {'code': secretCode};
+    String code = lockId + secretCode;
+    final queryParams = {'code': code};
     final url = Uri.parse('$backendBaseUrl/set-secret-code').replace(queryParameters: queryParams);
     // URL cuối cùng sẽ giống như: https://.../set-secret-code?code=kbsj9
     // -------------------------------------------

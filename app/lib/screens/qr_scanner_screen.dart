@@ -131,10 +131,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           // Truyền context của màn hình hiện tại và dữ liệu đã giải mã
           showValidateAndAddLockBottomSheet(context, decodedData);
 
-          // Sau khi bottom sheet đóng, ta muốn camera dừng lại hoặc điều hướng đi
-          // Không cần restart camera ở đây nữa trừ khi bottom sheet bị hủy
-          // Nếu muốn quét lại sau khi đóng bottom sheet, cần logic phức tạp hơn
-          // Tạm thời giả định sau khi gọi bottom sheet là xong việc quét
+          // Sau khi bottom sheet đóng, mở màn hình device_manager
+          // Navigator.of(context).pushReplacementNamed('/device_manager');
 
         } else {
           // Dữ liệu QR không hợp lệ

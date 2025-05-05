@@ -218,10 +218,14 @@ String getUuidFromNVS() {
 }
 
 String getLockId() {
-    // lấy mac và bỏ đi dấu ":"
-    String mac = WiFi.macAddress();
-    mac.replace(":", "");
-    return mac;
+    #ifdef WOKWI_SIMULATION
+        return "WokwiBoard01"; // đảm bảo 12 ký tự để không gây lỗi tính năng chia sẻ khóa
+    #else
+        // lấy mac và bỏ đi dấu ":"
+        String mac = WiFi.macAddress();
+        mac.replace(":", "");
+        return mac;
+    #endif
 }
 
 void openLock(LiquidCrystal_I2C &lcd) {
@@ -254,7 +258,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.7"; // Phiên bản hiện tại
+    String version = "v1.1.8"; // Phiên bản hiện tại
     return version;
 }
 

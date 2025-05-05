@@ -10,6 +10,7 @@
 #include "mqtt_handler.h"
 #include <Preferences.h>
 
+
 extern Preferences preferences;
 TaskHandle_t buzzerTaskHandle = NULL;
 TaskHandle_t relayTaskHandle = NULL;
@@ -74,20 +75,34 @@ void setup() {
     Serial.println("Buzzer Task created successfully.");
   }
 
-  connectwifi();
-
-  // lcd.print("Connecting WiFi...");
-  // //Kết nối WiFi
-  // WiFi.begin("Tiến", "11012004Aa");
-  // // WiFi.begin("Wokwi-GUEST", "", 6);
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(500);
-  // }
-  // lcd.clear();
-  // lcd.setCursor(0, 0);
-  // lcd.print("Connected to WiFi");
-  // delay(1000);
-  // lcd.clear();
+  // Kết nối WiFi
+  #ifdef WOKWI_SIMULATION
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Wokwi Simulation");
+    delay(1000);
+    lcd.clear();
+    // Nếu đang chạy trên Wokwi, sử dụng WiFi.begin() với thông tin mạng Wokwi-GUEST
+    lcd.clear();
+    lcd.print("Connecting WiFi...");
+    WiFi.begin("Wokwi-GUEST", "", 6);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+    }
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Connected to WiFi");
+    delay(1000);
+    lcd.clear();
+  #else
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Physical Device");
+    delay(1000);
+    lcd.clear();
+    // Nếu không phải trên Wokwi, sử dụng thông tin từ NVS hoặc từ người dùng
+    connectwifi();
+  #endif
 
   // Cấu hình NTP
   configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov"); // GMT+7 (7 * 3600 giây)

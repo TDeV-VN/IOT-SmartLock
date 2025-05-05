@@ -13,15 +13,8 @@
     {
       "type": "wokwi-membrane-keypad",
       "id": "keypad1",
-      "top": 151.6,
+      "top": 228.4,
       "left": -464.8,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-lcd1602",
-      "id": "lcd1",
-      "top": 377.83,
-      "left": 131.2,
       "attrs": {}
     },
     {
@@ -34,24 +27,31 @@
     {
       "type": "wokwi-led",
       "id": "led1",
-      "top": 726,
+      "top": 706.8,
       "left": 282.2,
       "attrs": { "color": "red" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r1",
-      "top": 762.35,
-      "left": 153.6,
+      "top": 733.85,
+      "left": 161.8,
       "rotate": 180,
       "attrs": { "value": "220" }
     },
     {
       "type": "wokwi-buzzer",
       "id": "bz1",
-      "top": 664.8,
+      "top": 645.6,
       "left": -238.2,
       "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd2",
+      "top": 275.2,
+      "left": -90.4,
+      "attrs": { "pins": "i2c" }
     }
   ],
   "connections": [
@@ -65,27 +65,19 @@
     ["esp:25", "keypad1:C2", "green", ["v0", "h-307.05"]],
     ["esp:33", "keypad1:C3", "green", ["h0"]],
     ["esp:32", "keypad1:C4", "green", ["h0"]],
-    ["esp:GND.2", "lcd1:VSS", "black", ["v0", "h76.8"]],
-    ["lcd1:V0", "esp:GND.2", "green", ["v0"]],
-    ["lcd1:RS", "esp:23", "green", ["v0"]],
-    ["lcd1:RW", "esp:GND.2", "green", ["v0"]],
-    ["lcd1:E", "esp:19", "green", ["v0"]],
-    ["lcd1:D4", "esp:18", "green", ["v0"]],
-    ["lcd1:D5", "esp:17", "green", ["v0"]],
-    ["lcd1:D6", "esp:16", "green", ["v0"]],
-    ["lcd1:D7", "esp:15", "green", ["v0"]],
-    ["lcd1:A", "esp:5V", "green", ["v0"]],
-    ["lcd1:VDD", "esp:5V", "green", ["v0"]],
-    ["lcd1:K", "esp:GND.2", "green", ["v0"]],
     ["relay1:VCC", "esp:5V", "red", ["h0"]],
     ["relay1:GND", "esp:GND.1", "black", ["h-172.8", "v-182.8"]],
-    ["led1:A", "relay1:NO", "green", ["v0"]],
-    ["led1:C", "r1:1", "green", ["v0"]],
-    ["r1:2", "esp:GND.2", "green", ["v-28.5", "h-29", "v-211.2"]],
+    ["led1:A", "relay1:NO", "gold", ["v76.8", "h-87.6"]],
+    ["led1:C", "r1:1", "gold", ["v0"]],
+    ["r1:2", "esp:GND.2", "gold", ["h-27.6", "v-211.2"]],
     ["relay1:IN", "esp:4", "green", ["h0"]],
-    ["relay1:COM", "esp:5V", "green", ["h-181.2", "v-126.2", "h-67.2"]],
-    ["bz1:2", "esp:D2", "red", ["v9.6", "h95.6", "v-86.4"]],
-    ["bz1:1", "esp:GND.1", "black", ["v28.8", "h76.8", "v-124.8"]]
+    ["relay1:COM", "esp:5V", "red", ["v65.8", "h-306", "v-201.6"]],
+    ["bz1:1", "esp:GND.1", "black", ["v28.8", "h76.8", "v-124.8"]],
+    ["lcd2:GND", "esp:GND.2", "black", ["h-48", "v182.4", "h220.8"]],
+    ["lcd2:VCC", "esp:5V", "red", ["h-67.2", "v384.1"]],
+    ["lcd2:SCL", "esp:22", "blue", ["h-19.2", "v134.7", "h220.8", "v76.8"]],
+    ["lcd2:SDA", "esp:21", "blue", ["h-28.8", "v125", "h259.2", "v144"]],
+    ["bz1:2", "esp:23", "red", ["v211.2", "h546.8", "v-364.8"]]
   ],
   "dependencies": {}
 }

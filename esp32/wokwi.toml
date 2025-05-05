@@ -1,7 +1,7 @@
 [wokwi]
 version = 1
-elf = ".pio/build/esp32doit-devkit-v1/firmware.elf"
-firmware = ".pio/build/esp32doit-devkit-v1/firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"
+firmware = ".pio/build/wokwi/firmware.bin"
 dependencies = ["Keypad", "adafruit/Adafruit LiquidCrystal"]
 
 # Forward http://localhost:8180 to port 80 on the simulated ESP32:

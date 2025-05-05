@@ -1,0 +1,24 @@
+{
+  "account": {
+    "7Qhlra3rVOYdLHwnh02pubJFvCG3": {
+      "lock": [
+        {
+          "id": "WokwiBoard01",
+          "latest_notification": {
+            "message": "Thông tin khóa được cập nhật",
+            "time": 1746258147219
+          },
+          "name": "Mô phỏng ở Wokwi"
+        }
+      ]
+    }
+  },
+  "lock": {
+    "WokwiBoard01": {
+      "locking_status": true,
+      "name": "Nhà chính",
+      "pin_code": "5555",
+      "uuid": "7Qhlra3rVOYdLHwnh02pubJFvCG3"
+    }
+  }
+}

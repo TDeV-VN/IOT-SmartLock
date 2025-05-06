@@ -43,7 +43,7 @@
    [https://www.wch.cn/download/file?id=65](https://www.wch.cn/download/file?id=65)
 
 2. Nạp code:  
-   ➜ Chạy lệnh `pio run -e nodemcu-32s`
+   ➜ Chạy lệnh `pio run -e nodemcu-32s -t upload`
 
 ---
 

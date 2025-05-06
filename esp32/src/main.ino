@@ -224,8 +224,6 @@ void resetLock() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Resetting lock...");
-  delay(2000);
-  lcd.clear();
   
   // xóa dữ liệu trong NVS
   preferences.begin("config", false);
@@ -240,11 +238,13 @@ void resetLock() {
   // xóa dư liệu trong Firebase
   if (WiFi.status() != WL_CONNECTED) {
     if (resetLockDataForAllUsers(lockId)) {
+      lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Reset lock data");
       lcd.setCursor(0, 1);
       lcd.print("successfully!");
     } else {
+      lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Reset lock data");
       lcd.setCursor(0, 1);

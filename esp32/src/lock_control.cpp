@@ -58,7 +58,7 @@ void handleLockControl(Keypad &keypad, LiquidCrystal_I2C &lcd, bool isReset) {
 
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Nhap ma khoaa");
+    lcd.print("Nhap ma khoa");
     enteredPassword = "";
     lastKeypressTime = millis();
 
@@ -258,7 +258,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.2.0"; // Phiên bản hiện tại
+    String version = "v1.2.1"; // Phiên bản hiện tại
     return version;
 }
 

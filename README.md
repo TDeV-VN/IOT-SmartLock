@@ -42,13 +42,8 @@
 1. Tải và cài đặt driver:  
    [https://www.wch.cn/download/file?id=65](https://www.wch.cn/download/file?id=65)
 
-2. Build firmware:  
-   ➜ Nhấn `F1` → `PlatformIO: Build`  
-   (hoặc chạy lệnh: `pio build`)
-
-3. Nạp code:  
-   ➜ Nhấn `F1` → `PlatformIO: Upload`  
-   (hoặc chạy lệnh: `pio upload`)
+2. Nạp code:  
+   ➜ Chạy lệnh `pio run -e nodemcu-32s`
 
 ---
 

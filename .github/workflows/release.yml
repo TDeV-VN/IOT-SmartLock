@@ -21,10 +21,10 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
-      - name: Build firmware (in esp32 folder)
+      - name: Build firmware for NodeMCU-32S
         run: |
           cd esp32
-          pio run
+          pio run -e nodemcu-32s
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4

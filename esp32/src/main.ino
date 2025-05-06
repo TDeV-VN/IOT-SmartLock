@@ -102,6 +102,10 @@ void setup() {
     lcd.clear();
     // Nếu không phải trên Wokwi, sử dụng thông tin từ NVS hoặc từ người dùng
     connectwifi();
+    // WiFi.begin("Tiến", "11012004Aa");
+    // while (WiFi.status() != WL_CONNECTED) {
+    //   delay(500);
+    // }
   #endif
 
   // Cấu hình NTP
@@ -144,7 +148,9 @@ void loop() {
     WiFi.begin(ssid.c_str(), password.c_str());
   }
 
-  mqttLoop(lockId, lcd); // Gọi hàm mqttLoop để xử lý MQTT
+  if (WiFi.status() == WL_CONNECTED){
+    mqttLoop(lockId, lcd); // Gọi hàm mqttLoop để xử lý MQTT
+  }
 
   // tiếp tục lắng nghe đẻ nhận tín hiệu tắt AP
   extern WebServer server;
@@ -207,7 +213,7 @@ if (hashKeyHeld && !resetTriggered) {
 // --------------------------------------------------
 
   // Gọi firebase định kỳ
-  if (millis() - lastFirebaseUpdate > FIREBASE_INTERVAL) {
+  if ((millis() - lastFirebaseUpdate > FIREBASE_INTERVAL) && WiFi.status() == WL_CONNECTED) {
     firebaseLoop(lcd, lockId);
     lastFirebaseUpdate = millis();
   }
@@ -232,18 +238,20 @@ void resetLock() {
   delay(1000);
 
   // xóa dư liệu trong Firebase
-  if (resetLockDataForAllUsers(lockId)) {
-    lcd.setCursor(0, 0);
-    lcd.print("Reset lock data");
-    lcd.setCursor(0, 1);
-    lcd.print("successfully!");
-  } else {
-    lcd.setCursor(0, 0);
-    lcd.print("Reset lock data");
-    lcd.setCursor(0, 1);
-    lcd.print("failed!");
+  if (WiFi.status() != WL_CONNECTED) {
+    if (resetLockDataForAllUsers(lockId)) {
+      lcd.setCursor(0, 0);
+      lcd.print("Reset lock data");
+      lcd.setCursor(0, 1);
+      lcd.print("successfully!");
+    } else {
+      lcd.setCursor(0, 0);
+      lcd.print("Reset lock data");
+      lcd.setCursor(0, 1);
+      lcd.print("failed!");
+    }
   }
-
+  
   // khởi động lại thiết bị
   ESP.restart();
 }

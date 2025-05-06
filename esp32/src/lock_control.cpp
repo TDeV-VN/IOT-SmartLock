@@ -12,7 +12,7 @@ int incorrectAttempts = 0; // Số lần nhập sai
 // Mã khóa đúng
 String getPinCodeFromNVS() {
     preferences.begin("config", true); // Mở namespace "config" ở chế độ chỉ đọc
-    String pinCode = preferences.getString("pinCode", "null"); // Lấy mã khóa
+    String pinCode = preferences.getString("pinCode", "0000"); // Lấy mã khóa
     preferences.end();
     return pinCode;
 }
@@ -258,7 +258,7 @@ void openLock(LiquidCrystal_I2C &lcd) {
 }
 
 String getFirmwareVersion() {
-    String version = "v1.1.8"; // Phiên bản hiện tại
+    String version = "v1.1.9"; // Phiên bản hiện tại
     return version;
 }
 

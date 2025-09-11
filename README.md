@@ -57,6 +57,18 @@
 
 ---
 
+# 🛠️ Cách phát hành một phiên bản Firmware mới
+
+- Tạo một tag mới với tag name bắt đầu bằng "v"
+- Push tag lên nhánh main
+- Sau một thời gian ngắn, thông báo về phiên bản mới sẽ được gửi đến người dùng và sẵn sàng để được tải về.
+- Có thể xem qua các phiên bản đã phát hành [tại đây](https://github.com/TDeV-VN/IOT-SmartLock-Firmware/tree/firmware)
+- Ví dụ:
+  `git tag v1.2.3`
+  `git push origin v1.2.3`
+
+---
+
 # ℹ️ MỘT SỐ THÔNG TIN KHÁC
 
 - Tài khoản truy cập **Firebase**, **HiveMQ**, **Render.com**:
